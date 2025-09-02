@@ -16,7 +16,7 @@ const videoRouter = require('./routes/videoCreator');
 //the browser protect the frontend to get connected with backedn because both are running at different port so to connect them we want a verfication that's why we use cors 
 //import cors -> and read the cors documentation
 app.use(cors({
-    origin:'http://localhost:5173',
+    origin:'https://codemaster-ebbm.onrender.com',
     credentials : true
 }))
 
