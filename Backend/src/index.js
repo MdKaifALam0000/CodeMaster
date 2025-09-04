@@ -17,7 +17,7 @@ const videoRouter = require('./routes/videoCreator');
 //import cors -> and read the cors documentation
 app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
-        ? ['https://your-frontend-domain.onrender.com'] 
+        ? 'https://codemaster-frontend.onrender.com' 
         : 'http://localhost:5173',
     credentials: true
 }))
