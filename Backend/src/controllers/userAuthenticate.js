@@ -35,7 +35,12 @@ const register = async (req, res) => {
         const token = jwt.sign({ _id: user._id, emailId: emailId, role: user.role }, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
 
         //setting the token in the cookie
-        res.cookie('token', token, { maxAge: 60 * 60 * 1000 });
+        res.cookie('token', token, { 
+            maxAge: 60 * 60 * 1000,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        });
         res.status(201).json({
             user: reply,
             message: 'User Registered Successfully',
@@ -84,7 +89,12 @@ const login = async (req, res) => {
         }
         //if the user is found then we will create a token
         const token = jwt.sign({ _id: user._id, emailId: emailId, role: user.role }, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
-        res.cookie('token', token, { maxAge: 60 * 60 * 1000 });
+        res.cookie('token', token, { 
+            maxAge: 60 * 60 * 1000,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        });
         res.status(201).json({
             user: reply,
             message: "Loggged in Successfully !!"
