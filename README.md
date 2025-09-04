@@ -24,101 +24,60 @@ Here’s a snapshot of the **CodeMaster Dashboard**:
 
 ## 🏗️ Project Structure
 
+```
 CodeMaster/
-├── Backend/
+├── Backend/                    # Node.js/Express API Server
 │   ├── src/
 │   │   ├── config/
-│   │   │   ├── db.js
-│   │   │   ├── redis.js
-│   │   │   └── cloudinary.js
+│   │   │   ├── db.js          # MongoDB connection
+│   │   │   └── redis.js       # Redis client configuration
 │   │   ├── controllers/
-│   │   │   ├── authController.js
-│   │   │   ├── problemController.js
-│   │   │   ├── submissionController.js
-│   │   │   ├── aiController.js
-│   │   │   └── videoController.js
+│   │   │   ├── solveDoubt.js      # AI chat functionality
+│   │   │   ├── userAuthenticate.js # Auth controllers
+│   │   │   ├── userProblem.js     # Problem CRUD operations
+│   │   │   ├── userSubmission.js  # Code submission handling
+│   │   │   └── videoSection.js    # Video management
 │   │   ├── middleware/
-│   │   │   ├── auth.js
-│   │   │   ├── validation.js
-│   │   │   └── errorHandler.js
-│   │   ├── models/
-│   │   │   ├── User.js
-│   │   │   ├── Problem.js
-│   │   │   ├── Submission.js
-│   │   │   └── Video.js
 │   │   ├── routes/
-│   │   │   ├── auth.js
-│   │   │   ├── problems.js
-│   │   │   ├── submissions.js
-│   │   │   ├── ai.js
-│   │   │   └── videos.js
-│   │   ├── utils/
-│   │   │   ├── helpers.js
-│   │   │   ├── judge0.js
-│   │   │   └── gemini.js
-│   │   └── index.js
-│   ├── .env
+│   │   │   ├── aiChatting.js      # AI chat routes
+│   │   │   ├── problemCreator.js  # Problem management routes
+│   │   │   ├── submit.js          # Submission routes
+│   │   │   ├── userAuth.js        # Authentication routes
+│   │   │   └── videoCreator.js    # Video routes
+│   │   └── index.js               # Main server file
+│   ├── .env                       # Environment variables
 │   ├── package.json
 │   └── package-lock.json
-├── frontend/
+├── frontend/                      # React/Vite Frontend
 │   ├── public/
-│   │   ├── vite.svg
-│   │   └── index.html
+│   │   └── vite.svg
 │   ├── src/
 │   │   ├── assets/
-│   │   │   ├── images/
-│   │   │   └── icons/
 │   │   ├── components/
-│   │   │   ├── ui/
-│   │   │   │   ├── Button.jsx
-│   │   │   │   ├── Input.jsx
-│   │   │   │   ├── Modal.jsx
-│   │   │   │   └── Loader.jsx
-│   │   │   ├── editor/
-│   │   │   │   └── CodeEditor.jsx
-│   │   │   ├── ai/
-│   │   │   │   └── AIChat.jsx
-│   │   │   ├── video/
-│   │   │   │   └── VideoPlayer.jsx
-│   │   │   ├── AdminPanel.jsx
-│   │   │   ├── AdminDelete.jsx
-│   │   │   ├── AdminUpdate.jsx
-│   │   │   ├── AdminVideo.jsx
-│   │   │   └── AdminUpload.jsx
+│   │   │   ├── AdminPanel.jsx     # Admin problem creation
+│   │   │   ├── AdminDelete.jsx    # Admin deletion interface
+│   │   │   ├── AdminUpdate.jsx    # Admin update interface
+│   │   │   ├── AdminVideo.jsx     # Admin video management
+│   │   │   └── AdminUpload.jsx    # Admin file upload
 │   │   ├── pages/
-│   │   │   ├── Admin.jsx
-│   │   │   ├── Homepage.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── ProblemPage.jsx
-│   │   │   ├── Signup.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   └── Profile.jsx
+│   │   │   ├── Admin.jsx          # Admin dashboard
+│   │   │   ├── Homepage.jsx       # Main user interface
+│   │   │   ├── Login.jsx          # Login page
+│   │   │   ├── ProblemPage.jsx    # Problem solving interface
+│   │   │   └── Signup.jsx         # Registration page
 │   │   ├── store/
-│   │   │   ├── slices/
-│   │   │   │   ├── authSlice.js
-│   │   │   │   ├── problemSlice.js
-│   │   │   │   └── submissionSlice.js
-│   │   │   └── store.js
-│   │   ├── hooks/
-│   │   │   ├── useAuth.js
-│   │   │   └── useProblems.js
-│   │   ├── utils/
-│   │   │   ├── constants.js
-│   │   │   ├── helpers.js
-│   │   │   └── api.js
-│   │   ├── styles/
-│   │   │   └── index.css
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── App.css
+│   │   │   └── store.js           # Redux store configuration
+│   │   ├── App.jsx                # Main app component
+│   │   ├── authSlice.js           # Redux auth slice
+│   │   ├── index.css              # Global styles
+│   │   └── main.jsx               # App entry point
 │   ├── .gitignore
 │   ├── package.json
 │   ├── vite.config.js
-│   ├── index.html
 │   └── README.md
-├── .gitignore
-├── package.json
-└── README.md
+├── .gitignore                     # Project-wide gitignore
+└── README.md                      # This file
+```
 
 
 
