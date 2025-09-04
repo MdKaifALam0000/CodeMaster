@@ -1,1 +1,189 @@
-<!DOCTYPE html><html> <head> </head> <body> <h1>CodeMaster - AI-Powered Coding Platform</h1><p>Live Demo: <a href="https://codemaster-frontend.onrender.com">https://codemaster-frontend.onrender.com</a></p><p><img src="https://github.com/user-attachments/assets/2e92e878-9c31-4c30-beeb-6b02bfb79676" alt="CodeMaster Dashboard" /></p><h2>🚀 Overview</h2><p>CodeMaster is a full-stack coding platform that combines interactive problem-solving with AI-powered assistance. It provides a professional coding environment with real-time feedback, video tutorials, and comprehensive progress tracking.</p><h2>✨ Key Features</h2><ul> <li><strong>🤖 AI-Powered Assistance</strong>: Integrated Google Gemini AI for contextual coding help</li> <li><strong>💻 Professional IDE</strong>: Monaco Editor (VS Code engine) with multi-language support</li> <li><strong>🎥 Video Tutorials</strong>: Integrated educational content with Cloudinary hosting</li> <li><strong>📊 Progress Tracking</strong>: Detailed analytics and submission history</li> <li><strong>👨‍💼 Admin Dashboard</strong>: Complete content management system</li> <li><strong>⚡ Real-time Code Execution</strong>: Judge0 integration for instant feedback</li> </ul><h2>🛠️ Tech Stack</h2><h3>Frontend</h3> <ul> <li>React 19 + Vite</li> <li>Redux Toolkit (State Management)</li> <li>TailwindCSS + DaisyUI (Styling)</li> <li>Monaco Editor (Code Editor)</li> <li>Framer Motion (Animations)</li> </ul><h3>Backend</h3> <ul> <li>Node.js + Express.js</li> <li>MongoDB (Database)</li> <li>Redis (Caching)</li> <li>JWT (Authentication)</li> <li>Cloudinary (Media Storage)</li> <li>Google Gemini API (AI)</li> </ul><h2>🏗️ Project Structure</h2><pre><code>CodeMaster/ ├── Backend/ # Express.js API Server │ ├── src/ │ │ ├── config/ # DB &amp; Redis configuration │ │ ├── controllers/ # Business logic │ │ ├── middleware/ # Auth &amp; validation │ │ ├── routes/ # API endpoints │ │ └── index.js # Server entry point ├── frontend/ # React Application │ ├── src/ │ │ ├── components/ # Reusable components │ │ ├── pages/ # Main pages │ │ ├── store/ # Redux store │ │ └── App.jsx # Main app component </code></pre><h2>🚀 Quick Start</h2><h3>Prerequisites</h3> <ul> <li>Node.js (v18+)</li> <li>MongoDB Atlas account</li> <li>Redis Cloud account</li> <li>Google Gemini API key</li> <li>Cloudinary account</li> </ul><h3>Installation</h3><ol> <li><p><strong>Clone the repository</strong></p><pre><code class="bash language-bash">git clone &lt;repository-url&gt; cd CodeMaster </code></pre></li><li><p><strong>Setup Backend</strong></p><pre><code class="bash language-bash">cd Backend npm install cp .env.example .env # Configure your environment variables npm run dev </code></pre></li><li><p><strong>Setup Frontend</strong></p><pre><code class="bash language-bash">cd frontend npm install npm run dev </code></pre></li></ol><h3>Environment Variables</h3><p>Create <code>Backend/.env</code> with:</p><pre><code>PORT=3000 MONGO_URI=your_mongodb_connection_string JWT_SECRET=your_jwt_secret REDIS_PASSWORD=your_redis_password GEMINI_API_KEY=your_gemini_api_key CLOUD_API_KEY=your_cloudinary_api_key CLOUD_API_SECRET=your_cloudinary_api_secret CLOUD_NAME=your_cloudinary_cloud_name </code></pre><h2>🌐 Deployment</h2><h3>Backend (Render - Web Service)</h3> <ul> <li><strong>Build Command</strong>: <code>cd Backend &amp;&amp; npm install</code></li> <li><strong>Start Command</strong>: <code>cd Backend &amp;&amp; npm start</code></li> <li><strong>Environment</strong>: Node</li> </ul><h3>Frontend (Render - Static Site)</h3> <ul> <li><strong>Build Command</strong>: <code>cd frontend &amp;&amp; npm install &amp;&amp; npm run build</code></li> <li><strong>Publish Directory</strong>: <code>frontend/dist</code></li> </ul><h3>Required Environment Variables for Production</h3> <ul> <li>Set all variables from <code>.env</code> in Render dashboard</li> <li>Update CORS origins for production URLs</li> </ul><h2>📋 API Endpoints</h2><table> <thead> <tr> <th>Method</th> <th>Endpoint</th> <th>Description</th> </tr> </thead> <tbody> <tr> <td>POST</td> <td><code>/user/signup</code></td> <td>User registration</td> </tr> <tr> <td>POST</td> <td><code>/user/login</code></td> <td>User login</td> </tr> <tr> <td>GET</td> <td><code>/problem/all</code></td> <td>Get all problems</td> </tr> <tr> <td>POST</td> <td><code>/submission/submit</code></td> <td>Submit code solution</td> </tr> <tr> <td>POST</td> <td><code>/ai/chat</code></td> <td>AI chat assistance</td> </tr> <tr> <td>POST</td> <td><code>/video/upload</code></td> <td>Upload video (Admin)</td> </tr> </tbody> </table><h2>🔧 Development</h2><pre><code class="bash language-bash"># Backend development cd Backend &amp;&amp; npm run dev # Frontend development cd frontend &amp;&amp; npm run dev # Production build cd frontend &amp;&amp; npm run build </code></pre><h2>🛡️ Security Features</h2><ul> <li>JWT Authentication with secure HTTP-only cookies</li> <li>Password hashing with bcrypt</li> <li>CORS protection</li> <li>Environment variable protection</li> <li>Role-based access control</li> </ul><h2>📞 Support</h2><p>For issues regarding:</p> <ul> <li>Deployment: Check Render logs and environment variables</li> <li>Database: Verify MongoDB Atlas connection</li> <li>Authentication: Ensure JWT secret is set</li> <li>AI Features: Validate Gemini API key</li> </ul><hr /><p><strong>Happy Coding! 🎉</strong></p></body> </html>
+# CodeMaster - Full-Stack Coding Platform
+
+A comprehensive coding platform with problem-solving capabilities, AI assistance, video tutorials, and administrative features.
+
+🌐 **Live Demo**: [CodeMaster Frontend](https://codemaster-frontend.onrender.com)
+
+---
+
+## 📸 Dashboard Preview
+
+Here’s a snapshot of the **CodeMaster Dashboard**:
+
+![Dashboard Screenshot](./3e4898d6-e454-47c3-94c9-98e3186dadd7.png)
+
+---
+
+## 🚀 Features
+
+- **User Authentication**: Secure JWT-based login/signup system  
+- **Problem Solving**: Interactive coding environment with Monaco Editor  
+- **AI Chat Assistant**: Integrated Google Gemini AI for coding help  
+- **Video Tutorials**: Upload and manage educational content  
+- **Admin Panel**: Complete CRUD operations for problems and content  
+- **Real-time Submissions**: Code execution and validation system  
+- **Redis Caching**: Optimized performance with Redis integration  
+
+---
+
+## 🏗️ Project Structure
+
+CodeMaster/
+├── Backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── db.js
+│   │   │   ├── redis.js
+│   │   │   └── cloudinary.js
+│   │   ├── controllers/
+│   │   │   ├── authController.js
+│   │   │   ├── problemController.js
+│   │   │   ├── submissionController.js
+│   │   │   ├── aiController.js
+│   │   │   └── videoController.js
+│   │   ├── middleware/
+│   │   │   ├── auth.js
+│   │   │   ├── validation.js
+│   │   │   └── errorHandler.js
+│   │   ├── models/
+│   │   │   ├── User.js
+│   │   │   ├── Problem.js
+│   │   │   ├── Submission.js
+│   │   │   └── Video.js
+│   │   ├── routes/
+│   │   │   ├── auth.js
+│   │   │   ├── problems.js
+│   │   │   ├── submissions.js
+│   │   │   ├── ai.js
+│   │   │   └── videos.js
+│   │   ├── utils/
+│   │   │   ├── helpers.js
+│   │   │   ├── judge0.js
+│   │   │   └── gemini.js
+│   │   └── index.js
+│   ├── .env
+│   ├── package.json
+│   └── package-lock.json
+├── frontend/
+│   ├── public/
+│   │   ├── vite.svg
+│   │   └── index.html
+│   ├── src/
+│   │   ├── assets/
+│   │   │   ├── images/
+│   │   │   └── icons/
+│   │   ├── components/
+│   │   │   ├── ui/
+│   │   │   │   ├── Button.jsx
+│   │   │   │   ├── Input.jsx
+│   │   │   │   ├── Modal.jsx
+│   │   │   │   └── Loader.jsx
+│   │   │   ├── editor/
+│   │   │   │   └── CodeEditor.jsx
+│   │   │   ├── ai/
+│   │   │   │   └── AIChat.jsx
+│   │   │   ├── video/
+│   │   │   │   └── VideoPlayer.jsx
+│   │   │   ├── AdminPanel.jsx
+│   │   │   ├── AdminDelete.jsx
+│   │   │   ├── AdminUpdate.jsx
+│   │   │   ├── AdminVideo.jsx
+│   │   │   └── AdminUpload.jsx
+│   │   ├── pages/
+│   │   │   ├── Admin.jsx
+│   │   │   ├── Homepage.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── ProblemPage.jsx
+│   │   │   ├── Signup.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   └── Profile.jsx
+│   │   ├── store/
+│   │   │   ├── slices/
+│   │   │   │   ├── authSlice.js
+│   │   │   │   ├── problemSlice.js
+│   │   │   │   └── submissionSlice.js
+│   │   │   └── store.js
+│   │   ├── hooks/
+│   │   │   ├── useAuth.js
+│   │   │   └── useProblems.js
+│   │   ├── utils/
+│   │   │   ├── constants.js
+│   │   │   ├── helpers.js
+│   │   │   └── api.js
+│   │   ├── styles/
+│   │   │   └── index.css
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── App.css
+│   ├── .gitignore
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── index.html
+│   └── README.md
+├── .gitignore
+├── package.json
+└── README.md
+
+
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+- **Runtime**: Node.js  
+- **Framework**: Express.js  
+- **Database**: MongoDB Atlas  
+- **Cache**: Redis Cloud  
+- **Authentication**: JWT + bcrypt  
+- **File Storage**: Cloudinary  
+- **AI Integration**: Google Gemini API  
+
+### Frontend
+- **Framework**: React 19 + Vite  
+- **State Management**: Redux Toolkit  
+- **Styling**: TailwindCSS + DaisyUI  
+- **Code Editor**: Monaco Editor  
+- **Animations**: Framer Motion  
+- **Icons**: Lucide React + React Icons  
+- **Video Player**: React Player  
+
+---
+
+## 🎯 Key Features Explained
+
+### Problem Solving Environment
+- Monaco Editor integration for code editing  
+- Multiple language support  
+- Real-time code execution  
+- Submission tracking and history  
+
+### AI Integration
+- Google Gemini AI for coding assistance  
+- Context-aware responses  
+- Problem-specific help  
+
+### Admin Dashboard
+- Problem management (CRUD)  
+- Video content upload  
+- Role-based access control  
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository  
+2. Create a feature branch  
+3. Make your changes  
+4. Test thoroughly  
+5. Submit a pull request  
+
+---
+
+## 📄 License
+
+This project is licensed under the **ISC License**.
+
+---
+
+✨ **Happy Coding with CodeMaster!**
