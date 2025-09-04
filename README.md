@@ -2,7 +2,7 @@
 
 A comprehensive coding platform with problem-solving capabilities, AI assistance, video tutorials, and administrative features.
 
-🌐 **Live Demo**: [CodeMaster Frontend](https://codemaster-frontend.onrender.com)
+🌐 **Live Demo**: [CodeMaster](https://codemaster-frontend.onrender.com)
 
 ---
 
