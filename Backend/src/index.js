@@ -16,8 +16,10 @@ const videoRouter = require('./routes/videoCreator');
 //the browser protect the frontend to get connected with backedn because both are running at different port so to connect them we want a verfication that's why we use cors 
 //import cors -> and read the cors documentation
 app.use(cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true
+    origin: 'https://codemaster-1.onrender.com',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }))
 
 // Middleware
@@ -27,9 +29,9 @@ app.use(cookieParser());
 // Routes
 app.use('/user', authrouter);
 app.use('/problem', problemRouter);
-app.use('/submission', submitRouter);
-app.use('/ai', aiRouter);
-app.use('/video', videoRouter)
+app.use('/submission' , submitRouter);
+app.use('/ai' , aiRouter);
+app.use('/video' , videoRouter)
 
 
 // Initialize DB & Redis, then start server
