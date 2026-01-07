@@ -5,8 +5,12 @@ export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData, { rejectWithValue }) => {
     try {
-    const response =  await axiosClient.post('/user/register', userData);
-    return response.data.user;
+      const response = await axiosClient.post('/user/register', userData);
+      // Store token in localStorage for Socket.IO
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      return response.data.user;
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -19,6 +23,10 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axiosClient.post('/user/login', credentials);
+      // Store token in localStorage for Socket.IO
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
       return response.data.user;
     } catch (error) {
       return rejectWithValue(error);
@@ -31,6 +39,10 @@ export const checkAuth = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await axiosClient.get('/user/check');
+      // Store token in localStorage if returned (for Socket.IO persistence)
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       return data.user;
     } catch (error) {
       if (error.response?.status === 401) {
@@ -46,6 +58,8 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await axiosClient.post('/user/logout');
+      // Clear token from localStorage
+      localStorage.removeItem('token');
       return null;
     } catch (error) {
       return rejectWithValue(error);
@@ -81,7 +95,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
       })
-  
+
       // Login User Cases
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -98,7 +112,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
       })
-  
+
       // Check Auth Cases
       .addCase(checkAuth.pending, (state) => {
         state.loading = true;
@@ -115,7 +129,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
       })
-  
+
       // Logout User Cases
       .addCase(logoutUser.pending, (state) => {
         state.loading = true;

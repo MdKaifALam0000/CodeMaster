@@ -13,3 +13,19 @@ services:
           type: web
           name: codemaster-backend
           property: port
+  
+  - type: static
+    name: codemaster-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    publishDir: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: codemaster-backend
+          property: url
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

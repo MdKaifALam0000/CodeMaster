@@ -1,20 +1,70 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Activity,
+  Code2,
+  Trophy,
+  Zap,
+  Search,
+  CheckCircle,
+  Users,
+  ChevronRight,
+  Menu,
+  X
+} from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 import { logoutUser } from '../authSlice';
+import Dashboard from '../components/Dashboard/Dashboard';
+
+import ProfilePopup from '../components/Dashboard/ProfilePopup';
+import AIAnalysisModal from '../components/Dashboard/AIAnalysisModal';
+
+// Helper function for formatting dates
+const formatDate = (dateString) => {
+  if (!dateString) return 'No date available';
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid date';
+
+    // Get today and yesterday dates for comparison
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Format the date based on when it occurred
+    if (date.toDateString() === today.toDateString()) {
+      return `Today at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return `Yesterday at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Date unavailable';
+  }
+};
 
 // A custom helper function to get the correct badge style
 const getDifficultyStyle = (difficulty) => {
   switch (difficulty?.toLowerCase()) {
     case 'easy':
-      return 'bg-green-600/20 text-green-400 border border-green-500/30';
+      return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
     case 'medium':
-      return 'bg-yellow-600/20 text-yellow-400 border border-yellow-500/30';
+      return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
     case 'hard':
-      return 'bg-red-600/20 text-red-400 border border-red-500/30';
+      return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
     default:
-      return 'bg-gray-600/20 text-gray-400 border border-gray-500/30';
+      return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
   }
 };
 
@@ -23,11 +73,40 @@ function Homepage() {
   const { user } = useSelector((state) => state.auth);
   const [problems, setProblems] = useState([]);
   const [solvedProblems, setSolvedProblems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [dashboardTab, setDashboardTab] = useState('profile');
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const [progressStats, setProgressStats] = useState({
+    weeklyProgress: 0,
+    monthlyProgress: 0,
+    streak: 0,
+    lastSubmission: null,
+    difficultyCounts: {
+      easy: 0,
+      medium: 0,
+      hard: 0
+    },
+    recentSubmissions: []
+  });
   const [filters, setFilters] = useState({
     difficulty: 'all',
     tag: 'all',
     status: 'all',
   });
+
+  // Scroll detection logic
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchProblems = async () => {
@@ -44,6 +123,61 @@ function Homepage() {
         try {
           const { data } = await axiosClient.get('/problem/problemSolvedByUser');
           setSolvedProblems(data);
+
+          // Calculate progress statistics
+          const today = new Date();
+          const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          const lastMonth = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+          const weeklyProgress = data.filter(prob => new Date(prob.solvedAt) > lastWeek).length;
+          const monthlyProgress = data.filter(prob => new Date(prob.solvedAt) > lastMonth).length;
+
+          // Calculate difficulty counts
+          const difficultyCounts = data.reduce((counts, prob) => {
+            counts[prob.difficulty.toLowerCase()]++;
+            return counts;
+          }, { easy: 0, medium: 0, hard: 0 });
+
+          // Calculate streak
+          const submissions = data
+            .map(prob => {
+              const date = new Date(prob.solvedAt);
+              return isNaN(date.getTime()) ? null : date;
+            })
+            .filter(date => date !== null)
+            .sort((a, b) => b - a); // Sort descending
+
+          let streak = 0;
+          if (submissions.length > 0) {
+            const lastSubmission = submissions[0];
+            const lastSubmissionDate = new Date(lastSubmission).toDateString();
+            const todayDate = new Date().toDateString();
+
+            if (lastSubmissionDate === todayDate) {
+              streak = 1;
+              let checkDate = new Date(lastSubmission);
+              checkDate.setDate(checkDate.getDate() - 1);
+
+              for (let i = 1; i < submissions.length; i++) {
+                const submissionDate = new Date(submissions[i]).toDateString();
+                if (submissionDate === checkDate.toDateString()) {
+                  streak++;
+                  checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                  break;
+                }
+              }
+            }
+          }
+
+          setProgressStats({
+            weeklyProgress,
+            monthlyProgress,
+            streak,
+            lastSubmission: submissions[0] || null,
+            difficultyCounts,
+            recentSubmissions: submissions.slice(0, 5)
+          });
         } catch (error) {
           console.error('Error fetching solved problems:', error);
         }
@@ -59,6 +193,19 @@ function Homepage() {
   const handleLogout = () => {
     dispatch(logoutUser());
     setSolvedProblems([]);
+    setIsDashboardOpen(false);
+    setIsProfilePopupOpen(false);
+  };
+
+  const handleOpenDashboard = (tab = 'profile') => {
+    setDashboardTab(tab);
+    setIsDashboardOpen(true);
+    setIsProfilePopupOpen(false);
+  };
+
+  const handleOpenAIModal = () => {
+    setIsAIModalOpen(true);
+    setIsProfilePopupOpen(false); // Close profile popup when opening AI modal
   };
 
   const isProblemSolved = (problemId) => {
@@ -71,258 +218,466 @@ function Homepage() {
     const statusMatch =
       filters.status === 'all' ||
       (filters.status === 'solved' && isProblemSolved(problem._id));
-    return difficultyMatch && tagMatch && statusMatch;
+    const searchMatch =
+      searchQuery === '' ||
+      problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      problem.tags.toLowerCase().includes(searchQuery.toLowerCase());
+    return difficultyMatch && tagMatch && statusMatch && searchMatch;
   });
 
   const solvedCount = solvedProblems.length;
   const totalProblems = problems.length;
 
+  // Animation Variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  // --- HEADER ANIMATION VARIANTS from Landing Page ---
+  const navVariants = {
+    top: {
+      width: "90%",
+      y: 20,
+      borderRadius: "50px",
+      backgroundColor: "rgba(0, 0, 0, 0.9)",
+      backdropFilter: "blur(6px)",
+      border: "1px solid rgba(255, 255, 255, 0.05)",
+      padding: "15px 30px",
+      boxShadow: "0 4px 20px -5px rgba(0, 0, 0, 0.1)"
+    },
+    scrolled: {
+      width: "60%",
+      y: 20,
+      borderRadius: "50px",
+      backgroundColor: "rgba(10, 10, 10, 0.95)", // Darker black
+      backdropFilter: "blur(10px)",
+      border: "1px solid rgba(255, 255, 255, 0.15)",
+      padding: "12px 30px",
+      boxShadow: "0 10px 30px -10px rgba(0, 0, 0, 0.5)"
+    }
+  };
+
+  const mobileNavVariants = {
+    top: {
+      width: "95%",
+      y: 15,
+      borderRadius: "20px",
+      backgroundColor: "rgba(0, 0, 0, 0.9)",
+      backdropFilter: "blur(6px)",
+      padding: "15px 20px"
+    },
+    scrolled: {
+      width: "90%",
+      y: 10,
+      borderRadius: "30px",
+      backgroundColor: "rgba(10, 10, 10, 0.95)", // Darker black
+      backdropFilter: "blur(10px)",
+      padding: "10px 20px",
+      border: "1px solid rgba(255, 255, 255, 0.1)"
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200">
-      {/* Modern Navigation Bar with all components re-ordered */}
-      <nav className="navbar bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-800/50 sticky top-0 z-50">
-        <div className="container mx-auto px-6 flex items-center justify-between">
-          {/* Left side: Brand Logo */}
-          <div className="flex-1">
-            <NavLink to="/" className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-              </svg>
-            </NavLink>
-          </div>
+    <div className="min-h-screen bg-[#0B0F19] text-gray-200 font-sans selection:bg-blue-500/30 overflow-x-hidden">
+      {/* Background Animated Blobs */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
+        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
+      </div>
 
-          {/* Center: Brand Name */}
-          <div className="flex-none">
-            <NavLink to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent hover:scale-105 transition-transform">
-              CodeMaster
-            </NavLink>
-          </div>
+      {/* --- HEADER CONTAINER --- */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center items-start pointer-events-none">
+        <motion.nav
+          initial="top"
+          animate={isScrolled ? "scrolled" : "top"}
+          variants={window.innerWidth < 768 ? mobileNavVariants : navVariants}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="flex items-center justify-between pointer-events-auto"
+        >
+          {/* Logo Section */}
+          <NavLink to="/" className="flex items-center gap-2 group">
+            <motion.div
+              animate={{ rotate: isScrolled ? 360 : 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Code2 className={`text-blue-500 transition-all duration-300 ${isScrolled ? 'w-6 h-6' : 'w-8 h-8'}`} />
+            </motion.div>
+            <span className={`font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent transition-all duration-300 ${isScrolled ? 'text-lg' : 'text-xl md:text-2xl'}`}>
+              The Turing Forge
+            </span>
+          </NavLink>
 
-          {/* Right side: Stats and Profile Dropdown */}
-          <div className="flex-1 flex justify-end items-center gap-4">
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-4">
             {/* Solved Problems Stat */}
-            <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-full border border-green-600/30">
-              <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm font-medium text-green-400">{solvedCount}/{totalProblems}</span>
-            </div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="hidden lg:flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20"
+            >
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-xs font-medium text-emerald-400">{solvedCount}/{totalProblems} Solved</span>
+            </motion.div>
+
+            {/* Leaderboard Button */}
+            <NavLink
+              to="/leaderboard"
+              className="text-sm font-medium text-gray-300 hover:text-white transition-colors flex items-center gap-1"
+            >
+              <Trophy className="w-4 h-4" />
+              <span className="hidden xl:inline">Leaderboard</span>
+            </NavLink>
+
+            {/* Team Coding Button */}
+            {user && (
+              <NavLink
+                to="/team-coding"
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors flex items-center gap-1"
+              >
+                <Users className="w-4 h-4" />
+                <span className="hidden xl:inline">Team Code</span>
+              </NavLink>
+            )}
 
             {/* Profile Dropdown or Login Button */}
             {user ? (
-              <div className="dropdown dropdown-end">
-                <div tabIndex={0} className="btn btn-ghost hover:bg-gray-800 rounded-xl px-4 py-2 transition-all duration-200">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm mr-2">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsProfilePopupOpen(!isProfilePopupOpen)}
+                className="relative pl-1 pr-3 py-1 rounded-full bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 transition-all flex items-center gap-2"
+              >
+                {user?.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt={user.firstName}
+                    className="w-7 h-7 rounded-full object-cover shadow-inner"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
                     {user?.firstName?.charAt(0)?.toUpperCase()}
                   </div>
-                  <span className="hidden md:block font-medium text-gray-200">{user?.firstName}</span>
-                  <svg className="w-4 h-4 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-                <ul className="mt-3 p-2 shadow-xl menu menu-sm dropdown-content bg-gray-800 rounded-xl border border-gray-700 w-52">
-                  <li>
-                    <button onClick={handleLogout} className="hover:bg-red-800/50 hover:text-red-400 rounded-lg transition-colors text-gray-200">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      Logout
-                    </button>
-                  </li>
-                  {user?.role === 'admin' && (
-                    <li>
-                      <NavLink to="/admin" className="hover:bg-blue-800/50 hover:text-blue-400 rounded-lg transition-colors text-gray-200">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Admin Panel
-                      </NavLink>
-                    </li>
-                  )}
-                </ul>
-              </div>
+                )}
+                <span className="hidden md:block text-sm font-medium text-gray-300">{user?.firstName}</span>
+              </motion.button>
             ) : (
-              <NavLink to="/login" className="btn bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2 shadow-md transition-all duration-200">Login</NavLink>
+              <NavLink
+                to="/login"
+                className={`text-sm font-medium transition-colors hover:text-blue-400 text-gray-200`}
+              >
+                Login
+              </NavLink>
             )}
           </div>
-        </div>
-      </nav>
 
-      {/* Hero Section */}
-      <div className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-6">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">Coding</span> Skills
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-gray-400">
-              Practice coding problems and boost your programming expertise
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
-              <div className="bg-gray-800/50 backdrop-blur-md rounded-xl p-6 border border-gray-700">
-                <div className="text-3xl font-bold text-yellow-400">{totalProblems}</div>
-                <div className="text-sm text-gray-400">Total Problems</div>
-              </div>
-              <div className="bg-gray-800/50 backdrop-blur-md rounded-xl p-6 border border-gray-700">
-                <div className="text-3xl font-bold text-green-400">{solvedCount}</div>
-                <div className="text-sm text-gray-400">Problems Solved</div>
-              </div>
-              <div className="bg-gray-800/50 backdrop-blur-md rounded-xl p-6 border border-gray-700">
-                <div className="text-3xl font-bold text-blue-400">
-                  {totalProblems > 0 ? Math.round((solvedCount / totalProblems) * 100) : 0}%
-                </div>
-                <div className="text-sm text-gray-400">Completion Rate</div>
-              </div>
-            </div>
+          {/* Mobile Menu Toggle */}
+          <div className="md:hidden">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-200">
+              {mobileMenuOpen ? <X /> : <Menu />}
+            </button>
           </div>
-        </div>
+        </motion.nav>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        {/* Modern Filters Section */}
-        <div className="bg-gray-800/50 backdrop-blur-md rounded-2xl shadow-lg border border-gray-700 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-200 flex items-center gap-2">
-              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              Filter Problems
-            </h2>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <span className="font-medium">{filteredProblems.length}</span>
-              <span>problems found</span>
+      <div className="relative z-10">
+        {/* Hero Section */}
+        <div className="py-24 md:py-32 relative">
+          <div className="container mx-auto px-6">
+            <div className="text-center max-w-4xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
+                  Master Your <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                    Coding Skills
+                  </span>
+                </h1>
+                <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                  Enhance your problem-solving capabilities with our curated collection of algorithmic challenges. Join a community of developers leveling up together.
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                {[
+                  { label: "Total Problems", value: totalProblems, color: "text-blue-400", icon: Code2, bg: "bg-blue-500/10", border: "border-blue-500/20" },
+                  { label: "Problems Solved", value: solvedCount, color: "text-emerald-400", icon: CheckCircle, bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+                  { label: "Completion Rate", value: `${totalProblems > 0 ? Math.round((solvedCount / totalProblems) * 100) : 0}%`, color: "text-purple-400", icon: Activity, bg: "bg-purple-500/10", border: "border-purple-500/20" }
+                ].map((stat, i) => (
+                  <motion.div
+                    key={i}
+                    whileHover={{ y: -5 }}
+                    className={`backdrop-blur-md rounded-2xl p-6 border ${stat.border} ${stat.bg} relative overflow-hidden group`}
+                  >
+                    <div className="relative z-10">
+                      <div className={`p-3 rounded-xl w-fit mb-4 ${stat.color} bg-black/20`}>
+                        <stat.icon className="w-6 h-6" />
+                      </div>
+                      <div className={`text-4xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
+                      <div className="text-sm text-gray-400 font-medium">{stat.label}</div>
+                    </div>
+                    <div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-10 ${stat.color.replace('text', 'bg')}`} />
+                  </motion.div>
+                ))}
+              </motion.div>
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Status
-              </label>
-              <select
-                className="select select-bordered w-full bg-gray-800/50 border-gray-700 text-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 rounded-xl transition-all"
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-              >
-                <option value="all">All Problems</option>
-                <option value="solved">Solved Problems</option>
-              </select>
+        {/* Progress Dashboard */}
+        <AnimatePresence>
+          {user && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="container mx-auto px-6 mb-12"
+            >
+              <div className="bg-gray-900/40 backdrop-blur-xl rounded-3xl border border-gray-800 p-8 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                  <Activity className="w-64 h-64 text-blue-500" />
+                </div>
+
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 relative z-10">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3 mb-2">
+                      Your Progress
+                    </h2>
+                    <p className="text-gray-400 text-sm">Keep up the momentum to reach your goals.</p>
+                  </div>
+                  <div className="flex items-center gap-3 mt-4 md:mt-0">
+                    <div className="px-5 py-2.5 bg-orange-500/10 rounded-xl border border-orange-500/20 flex items-center gap-2">
+                      <Zap className="w-5 h-5 text-orange-400 fill-orange-400" />
+                      <span className="text-orange-400 font-bold">{progressStats.streak} Day Streak</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 relative z-10">
+                  {/* Weekly Progress */}
+                  <div className="bg-black/20 rounded-2xl p-5 border border-gray-800">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="p-2 bg-blue-500/10 rounded-lg">
+                        <Activity className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <span className="text-2xl font-bold text-white">{progressStats.weeklyProgress}</span>
+                    </div>
+                    <div className="text-sm text-gray-400">Problems solved this week</div>
+                  </div>
+
+                  {/* Monthly Progress */}
+                  <div className="bg-black/20 rounded-2xl p-5 border border-gray-800">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="p-2 bg-purple-500/10 rounded-lg">
+                        <Trophy className="w-5 h-5 text-purple-400" />
+                      </div>
+                      <span className="text-2xl font-bold text-white">{progressStats.monthlyProgress}</span>
+                    </div>
+                    <div className="text-sm text-gray-400">Problems solved this month</div>
+                  </div>
+
+                  {/* Difficulty Breakdown */}
+                  <div className="bg-black/20 rounded-2xl p-5 border border-gray-800 col-span-1 lg:col-span-2">
+                    <h3 className="text-sm font-medium text-gray-400 mb-4">Difficulty Breakdown</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      {[
+                        { label: 'Easy', count: progressStats.difficultyCounts.easy, color: 'bg-emerald-500' },
+                        { label: 'Medium', count: progressStats.difficultyCounts.medium, color: 'bg-amber-500' },
+                        { label: 'Hard', count: progressStats.difficultyCounts.hard, color: 'bg-rose-500' }
+                      ].map((diff) => (
+                        <div key={diff.label} className="space-y-2">
+                          <div className="flex justify-between text-xs text-gray-400">
+                            <span>{diff.label}</span>
+                            <span>{diff.count}</span>
+                          </div>
+                          <div className="h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
+                            <motion.div
+                              className={`h-full ${diff.color}`}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${(diff.count / (solvedCount || 1)) * 100}%` }}
+                              transition={{ duration: 1, delay: 0.5 }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Overall Progress Bar */}
+                <div className="relative z-10">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-400">Overall Completion</span>
+                    <span className="text-white font-medium">{Math.round((solvedCount / totalProblems) * 100) || 0}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 relative"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(solvedCount / totalProblems) * 100 || 0}%` }}
+                      transition={{ duration: 1.2, ease: "easeOut" }}
+                    >
+                      <div className="absolute top-0 right-0 bottom-0 w-20 bg-gradient-to-l from-white/20 to-transparent" />
+                    </motion.div>
+                  </div>
+                </div>
+
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Filters and Search */}
+        <div className="container mx-auto px-6 pb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col md:flex-row gap-4 mb-8"
+          >
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search problems..."
+                className="w-full bg-gray-900/50 border border-gray-800 text-gray-200 pl-12 pr-4 py-3.5 rounded-2xl focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-gray-600 backdrop-blur-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Difficulty
-              </label>
-              <select
-                className="select select-bordered w-full bg-gray-800/50 border-gray-700 text-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 rounded-xl transition-all"
-                value={filters.difficulty}
-                onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
-              >
-                <option value="all">All Difficulties</option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+              {['all', 'easy', 'medium', 'hard'].map((diff) => (
+                <button
+                  key={diff}
+                  onClick={() => setFilters({ ...filters, difficulty: diff })}
+                  className={`px-6 py-3.5 rounded-2xl capitalize text-sm font-medium transition-all whitespace-nowrap border ${filters.difficulty === diff
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20'
+                    : 'bg-gray-900/50 text-gray-400 border-gray-800 hover:bg-gray-800 hover:text-white'
+                    }`}
+                >
+                  {diff}
+                </button>
+              ))}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                Tags
-              </label>
+              <div className="w-px bg-gray-800 mx-2" />
+
               <select
-                className="select select-bordered w-full bg-gray-800/50 border-gray-700 text-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 rounded-xl transition-all"
                 value={filters.tag}
                 onChange={(e) => setFilters({ ...filters, tag: e.target.value })}
+                className="px-4 py-3.5 rounded-2xl bg-gray-900/50 border border-gray-800 text-gray-400 text-sm font-medium focus:outline-none focus:border-blue-500/50 hover:bg-gray-800 transition-all appearance-none cursor-pointer min-w-[140px]"
               >
                 <option value="all">All Tags</option>
                 <option value="array">Array</option>
                 <option value="linkedList">Linked List</option>
                 <option value="graph">Graph</option>
-                <option value="dp">Dynamic Programming</option>
+                <option value="dp">DP</option>
               </select>
             </div>
-          </div>
-        </div>
+          </motion.div>
 
-        {/* Modern Problems List */}
-        <div className="space-y-4">
-          {filteredProblems.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gray-800 rounded-full flex items-center justify-center">
-                <svg className="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-400 mb-2">No problems found</h3>
-              <p className="text-gray-500">Try adjusting your filters to see more problems</p>
-            </div>
-          ) : (
-            filteredProblems.map((problem, index) => (
-              <div
-                key={problem._id}
-                className="group bg-gray-800/50 backdrop-blur-md rounded-2xl shadow-sm hover:shadow-xl border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 hover:-translate-y-1"
+          {/* Problem List */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid gap-4"
+          >
+            {filteredProblems.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-20"
               >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                        {index + 1}
-                      </div>
+                <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-800">
+                  <Search className="w-8 h-8 text-gray-600" />
+                </div>
+                <h3 className="text-xl font-medium text-gray-300 mb-2">No problems found</h3>
+                <p className="text-gray-500">Try adjusting your search or filters</p>
+              </motion.div>
+            ) : (
+              filteredProblems.map((problem, index) => (
+                <motion.div
+                  key={problem._id}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.01, x: 4 }}
+                  className="group bg-gray-900/40 hover:bg-gray-900/60 backdrop-blur-md border border-gray-800/50 hover:border-blue-500/30 rounded-2xl p-5 transition-all cursor-pointer relative overflow-hidden"
+                >
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-6">
+                      <span className="text-lg font-mono text-gray-600 font-medium w-6">
+                        {(index + 1).toString().padStart(2, '0')}
+                      </span>
                       <div>
                         <NavLink
                           to={`/problem/${problem._id}`}
-                          className="text-xl font-semibold text-gray-100 hover:text-blue-400 transition-colors group-hover:text-blue-400"
+                          className="text-lg font-semibold text-gray-200 group-hover:text-blue-400 transition-colors flex items-center gap-3"
                         >
                           {problem.title}
+                          {isProblemSolved(problem._id) && (
+                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                          )}
                         </NavLink>
                         <div className="flex items-center gap-3 mt-2">
-                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyStyle(problem.difficulty)}`}>
+                          <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium border ${getDifficultyStyle(problem.difficulty)}`}>
                             {problem.difficulty}
-                          </div>
-                          <div className="px-3 py-1 rounded-full text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700">
                             {problem.tags}
-                          </div>
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      {isProblemSolved(problem._id) && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-full border border-green-600/30">
-                          <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          <span className="text-sm font-medium text-green-400">Solved</span>
-                        </div>
-                      )}
-                      <NavLink
-                        to={`/problem/${problem._id}`}
-                        className="btn btn-sm bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white border-0 rounded-xl px-6 transition-all duration-200 shadow-lg hover:shadow-xl"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                        Solve
-                      </NavLink>
-                    </div>
+                    <NavLink
+                      to={`/problem/${problem._id}`}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-4 group-hover:translate-x-0"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                        <ChevronRight className="w-5 h-5" />
+                      </div>
+                    </NavLink>
                   </div>
-                </div>
-              </div>
-            ))
-          )}
+                </motion.div>
+              ))
+            )}
+          </motion.div>
         </div>
       </div>
+
+      {/* Dashboard Component */}
+      <Dashboard isOpen={isDashboardOpen} onClose={() => setIsDashboardOpen(false)} />
+
+      {/* Profile Popup */}
+
+      <ProfilePopup
+        isOpen={isProfilePopupOpen}
+        onClose={() => setIsProfilePopupOpen(false)}
+        onOpenDashboard={handleOpenDashboard}
+        onOpenAIModal={handleOpenAIModal}
+      />
+
+      <AIAnalysisModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+      />
     </div>
   );
 }

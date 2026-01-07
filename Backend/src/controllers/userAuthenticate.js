@@ -5,8 +5,51 @@ const submission = require('../models/submission')
 //for hashing the password
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const sendEmail = require('../utils/emailService');
 
 
+
+const generateOTP = async (req, res) => {
+    try {
+        const { emailId } = req.body;
+        if (!emailId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email is required'
+            });
+        }
+
+        // Generate 6 digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ emailId });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email is already registered'
+            });
+        }
+
+        // Store OTP in Redis with 10 mins expiration (600 seconds)
+        await redisClient.set(`otp:${emailId}`, otp, { EX: 600 });
+
+        // Send Email
+        await sendEmail(emailId, otp);
+
+        res.status(200).json({
+            success: true,
+            message: 'OTP sent successfully'
+        });
+
+    } catch (err) {
+        console.error('OTP Error:', err);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to send OTP. Please try again.'
+        });
+    }
+}
 
 const register = async (req, res) => {
     try {
@@ -15,7 +58,17 @@ const register = async (req, res) => {
         validate(req.body);
 
         //all data  will be in the req.body
-        const { firstName, emailId, password } = req.body;
+        const { firstName, emailId, password, otp } = req.body;
+
+        // Verify OTP
+        const storedOTP = await redisClient.get(`otp:${emailId}`);
+        if (!storedOTP || storedOTP !== otp) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid or expired OTP'
+            });
+        }
+
 
         //hashing the password
         req.body.password = await bcrypt.hash(password, 10);
@@ -29,20 +82,25 @@ const register = async (req, res) => {
             firstName: user.firstName,
             emailId: user.emailId,
             _id: user._id,
-            role: user.role
+            role: user.role,
+            profilePicture: user.profilePicture
         }
 
         const token = jwt.sign({ _id: user._id, emailId: emailId, role: user.role }, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
 
         //setting the token in the cookie
-        res.cookie('token', token, { 
+        res.cookie('token', token, {
             maxAge: 60 * 60 * 1000,
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
         });
+        // Cleanup OTP after successful registration
+        await redisClient.del(`otp:${emailId}`);
+
         res.status(201).json({
             user: reply,
+            token: token,
             message: 'User Registered Successfully',
         })
 
@@ -85,11 +143,12 @@ const login = async (req, res) => {
             firstName: user.firstName,
             emailId: user.emailId,
             _id: user._id,
-            role: user.role
+            role: user.role,
+            profilePicture: user.profilePicture
         }
         //if the user is found then we will create a token
         const token = jwt.sign({ _id: user._id, emailId: emailId, role: user.role }, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
-        res.cookie('token', token, { 
+        res.cookie('token', token, {
             maxAge: 60 * 60 * 1000,
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -97,6 +156,7 @@ const login = async (req, res) => {
         });
         res.status(201).json({
             user: reply,
+            token: token,
             message: "Loggged in Successfully !!"
         });
 
@@ -195,4 +255,4 @@ const deleteProfile = async (req, res) => {
     }
 }
 
-module.exports = { register, login, logout, adminRegister, deleteProfile };
+module.exports = { register, login, logout, adminRegister, deleteProfile, generateOTP };

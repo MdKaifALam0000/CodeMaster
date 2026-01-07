@@ -2,10 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import Editor from '@monaco-editor/react';
 import { useParams } from 'react-router';
+import { Sparkles, Play } from 'lucide-react';
 import axiosClient from "../utils/axiosClient"
 import SubmissionHistory from "../components/SubmissionHistory"
 import ChatAi from '../components/ChatAI';
 import Editorial from '../components/Editorial';
+import CodeReview from '../components/CodeReview';
+import { AlgorithmAnimator } from '../components/AlgorithmAnimator';
 
 const langMap = {
     cpp: 'C++',
@@ -23,11 +26,12 @@ const ProblemPage = () => {
     const [submitResult, setSubmitResult] = useState(null);
     const [activeLeftTab, setActiveLeftTab] = useState('description');
     const [activeRightTab, setActiveRightTab] = useState('code');
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [isAnimatorOpen, setIsAnimatorOpen] = useState(false);
     const editorRef = useRef(null);
     let { problemId } = useParams();
 
     const { handleSubmit } = useForm();
-
 
     //     _id: '507f1f77bcf86cd799439011',
     //     title: 'Two Sum',
@@ -370,7 +374,7 @@ const ProblemPage = () => {
                                 <div className="prose max-w-none">
                                     <h2 className="text-xl font-bold mb-4">Editorial</h2>
                                     <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                                      <Editorial secureUrl={problem.secureUrl} thumbnailUrl={problem.thumbnailUrl} duration={problem.duration}/>
+                                        <Editorial secureUrl={problem.secureUrl} thumbnailUrl={problem.thumbnailUrl} duration={problem.duration} />
                                     </div>
                                 </div>
                             )}
@@ -403,14 +407,15 @@ const ProblemPage = () => {
                                     </div>
                                 </div>
                             )}
-                            {activeLeftTab === 'chatAI' && (
+                            {/* ChatAI - Always mounted but hidden when not active */}
+                            <div className={activeLeftTab === 'chatAI' ? 'block' : 'hidden'}>
                                 <div className="prose max-w-none">
                                     <h2 className="text-xl font-bold mb-4">Chat With AI</h2>
                                     <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                                        <ChatAi problem={problem}/>
+                                        <ChatAi problem={problem} />
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </>
                     )}
                 </div>
@@ -499,6 +504,21 @@ const ProblemPage = () => {
                                         onClick={() => setActiveRightTab('testcase')}
                                     >
                                         Console
+                                    </button>
+                                    <button
+                                        className="btn btn-outline btn-sm gap-2"
+                                        onClick={() => setIsReviewModalOpen(true)}
+                                        disabled={!code || code.trim() === ''}
+                                    >
+                                        <Sparkles className="w-4 h-4" />
+                                        AI Review
+                                    </button>
+                                    <button
+                                        className="btn btn-outline btn-sm gap-2 border-purple-500 text-purple-400 hover:bg-purple-500/20"
+                                        onClick={() => setIsAnimatorOpen(true)}
+                                    >
+                                        <Play className="w-4 h-4" />
+                                        Visualize
                                     </button>
                                 </div>
                                 <div className="flex gap-2">
@@ -611,6 +631,30 @@ const ProblemPage = () => {
                     )}
                 </div>
             </div>
+
+            {/* Code Review Modal */}
+            <CodeReview
+                isOpen={isReviewModalOpen}
+                onClose={() => setIsReviewModalOpen(false)}
+                code={code}
+                language={selectedLanguage}
+                problemTitle={problem?.title}
+                problemDescription={problem?.description}
+            />
+
+            {/* Algorithm Animation Modal */}
+            <AlgorithmAnimator
+                isOpen={isAnimatorOpen}
+                onClose={() => setIsAnimatorOpen(false)}
+                problemContext={{
+                    title: problem?.title,
+                    description: problem?.description,
+                    tags: problem?.tags,
+                    difficulty: problem?.difficulty
+                }}
+                question={`Explain how to solve ${problem?.title || 'this algorithm'} step by step with visual animation`}
+                exampleInput={problem?.visibleTestCases?.[0]?.input}
+            />
         </div>
     );
 };

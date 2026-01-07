@@ -113,9 +113,49 @@ You are an expert Data Structures and Algorithms (DSA) tutor specializing in hel
                 }
 
                 if (apiError.status === 429) {
+                    // Extract retry delay from error details if available
+                    let retryAfterSeconds = 60; // Default to 60 seconds
+                    let quotaInfo = {};
+                    
+                    try {
+                        // Parse error message for retry delay
+                        const errorMessage = apiError.message || '';
+                        const retryMatch = errorMessage.match(/retry in ([\d.]+)s/i);
+                        if (retryMatch) {
+                            retryAfterSeconds = Math.ceil(parseFloat(retryMatch[1]));
+                        }
+                        
+                        // Extract quota information if available
+                        if (errorMessage.includes('quota exceeded')) {
+                            quotaInfo.quotaExceeded = true;
+                            quotaInfo.message = 'Your Gemini API quota has been exceeded.';
+                            
+                            // Check if it's free tier limit
+                            if (errorMessage.includes('free_tier')) {
+                                quotaInfo.tier = 'free';
+                                quotaInfo.suggestion = 'Consider upgrading to a paid plan or wait for quota reset.';
+                            }
+                        }
+                    } catch (parseError) {
+                        console.error("Error parsing API error details:", parseError);
+                    }
+                    
                     return res.status(429).json({
                         success: false,
-                        error: "Too many requests to Gemini API"
+                        error: "Gemini API quota exceeded",
+                        message: quotaInfo.quotaExceeded 
+                            ? "The AI service has reached its usage limit. This typically happens when too many requests are made in a short time."
+                            : "Too many requests to the AI service. Please try again later.",
+                        retryAfter: retryAfterSeconds,
+                        retryAfterFormatted: retryAfterSeconds >= 60 
+                            ? `${Math.ceil(retryAfterSeconds / 60)} minute(s)`
+                            : `${retryAfterSeconds} second(s)`,
+                        ...quotaInfo,
+                        tips: [
+                            "Wait a few moments before trying again",
+                            "Try asking simpler questions",
+                            "Consider using the service during off-peak hours"
+                        ]
                     });
                 }
 

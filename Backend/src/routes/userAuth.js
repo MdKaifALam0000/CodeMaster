@@ -1,11 +1,12 @@
 const express = require('express');
 
 const authrouter = express.Router();
-const { register, login, logout, adminRegister, deleteProfile } = require('../controllers/userAuthenticate');
+const { register, login, logout, adminRegister, deleteProfile, generateOTP } = require('../controllers/userAuthenticate');
 const userMiddleware = require('../middleware/userMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
 
 //Register User
+authrouter.post('/generate-otp', generateOTP);
 authrouter.post('/register', register);
 authrouter.post('/login', login);
 authrouter.post('/logout', userMiddleware, logout);
@@ -19,11 +20,13 @@ authrouter.get('/check', userMiddleware, (req, res) => {
         firstName: req.result.firstName,
         emailId: req.result.emailId,
         _id: req.result._id,
-        role:req.result.role,
+        role: req.result.role,
+        profilePicture: req.result.profilePicture
     }
 
     res.status(200).json({
         user: reply,
+        token: req.cookies.token,
         message: "Valid User"
     });
 })
@@ -32,6 +35,3 @@ authrouter.get('/check', userMiddleware, (req, res) => {
 
 
 module.exports = authrouter;
-//Login
-//Logout
-//Get User Details

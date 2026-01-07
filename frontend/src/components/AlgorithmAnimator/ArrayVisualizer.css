@@ -1,0 +1,111 @@
+.array-visualizer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    min-height: 250px;
+    justify-content: center;
+    overflow: hidden;
+    /* Keep animations inside */
+}
+
+.array-container {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    min-height: 140px;
+    /* Increased to make room for pointers */
+    width: 100%;
+}
+
+.array-element-motion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 70px;
+    border: 2px solid;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+}
+
+.element-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    z-index: 2;
+}
+
+.element-index {
+    position: absolute;
+    bottom: -25px;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-family: monospace;
+}
+
+/* New Pointers Styles */
+.visual-pointer {
+    position: absolute;
+    top: -40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: bounce 1s infinite;
+}
+
+.visual-pointer span {
+    font-size: 1.2rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.visual-pointer::after {
+    content: '';
+    width: 2px;
+    height: 15px;
+    background-color: currentColor;
+    margin-top: -5px;
+}
+
+.visual-pointer.compare {
+    color: #fbbf24;
+    /* Yellow */
+}
+
+.visual-pointer.swap {
+    color: #10b981;
+    /* Green */
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.array-caption {
+    margin-top: 2rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

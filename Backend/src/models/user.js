@@ -42,6 +42,31 @@ const userSchema = new Schema({
         type: String,
         required: true,
     },
+    profilePicture: {
+        type: String,
+        default: ''
+    },
+    cloudinaryPublicId: {
+        type: String,
+        default: ''
+    },
+    bio: {
+        type: String,
+        maxLength: 500,
+        default: ''
+    },
+    skills: {
+        type: [String],
+        default: []
+    },
+    githubUrl: {
+        type: String,
+        default: ''
+    },
+    linkedinUrl: {
+        type: String,
+        default: ''
+    },
 
 }, {
     timestamps: true,
@@ -54,10 +79,10 @@ const userSchema = new Schema({
 
 userSchema.post('findOneAndDelete', async function (userInfo) {
     if (userInfo) {
-        await mongoose.model('submission').deleteMany({ userId: userInfo._id });
+        await mongoose.model('Submission').deleteMany({ userId: userInfo._id });
     }
 });
 
 
-const User = mongoose.model('user', userSchema);
+const User = mongoose.model('User', userSchema);
 module.exports = User;

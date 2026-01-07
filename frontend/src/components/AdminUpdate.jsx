@@ -3,8 +3,21 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import axiosClient from '../utils/axiosClient';
-import { useNavigate } from 'react-router';
-import { FaInfoCircle, FaFileCode, FaCode, FaPlus, FaTrashAlt, FaSpinner, FaArrowLeft } from 'react-icons/fa';
+import { useNavigate, NavLink } from 'react-router';
+import {
+  Info,
+  FileCode,
+  Code2,
+  Plus,
+  Trash2,
+  ArrowLeft,
+  Save,
+  Layers,
+  CheckCircle,
+  Search,
+  RefreshCw
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // Zod schema matching the problem schema
 const problemSchema = z.object({
@@ -119,9 +132,9 @@ function AdminUpdate() {
       // Fetch complete problem details (we need all fields for update)
       const response = await axiosClient.get(`/problem/problemById/${problemId}`);
       const problemData = response.data;
-      
+
       setSelectedProblem(problemData);
-      
+
       // Reset form with fetched data
       reset({
         title: problemData.title,
@@ -175,271 +188,351 @@ function AdminUpdate() {
 
   if (loadingProblems) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-gray-200">
-        <FaSpinner className="animate-spin text-blue-500 h-10 w-10" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0B0F19] text-gray-200">
+        <div className="relative w-16 h-16 mb-4">
+          <div className="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"></div>
+        </div>
+        <p className="text-gray-400 animate-pulse">Loading problems...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 py-12">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold text-gray-100">Update Problem</h1>
-          <button
-            onClick={() => navigate('/admin')}
-            className="btn btn-ghost text-gray-400 hover:bg-gray-800 rounded-xl px-4 py-2 transition-all duration-200 flex items-center gap-2"
-          >
-            <FaArrowLeft />
-            Back to Admin
-          </button>
+    <div className="min-h-screen bg-[#0B0F19] text-gray-200 font-sans selection:bg-blue-500/30 relative overflow-hidden">
+      {/* Background Animated Blobs */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
+        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-yellow-600/10 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
+      </div>
+
+      {/* Navigation Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center pointer-events-none">
+        <NavLink to="/" className="flex items-center gap-3 pointer-events-auto group">
+          <div className="bg-gray-800/50 p-2 rounded-xl border border-gray-700/50 group-hover:border-blue-500/50 transition-colors backdrop-blur-md">
+            <Code2 className="w-6 h-6 text-blue-500" />
+          </div>
+        </NavLink>
+
+        <NavLink to="/admin" className="pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800/40 border border-gray-700/50 hover:bg-gray-800/60 hover:text-white transition-all backdrop-blur-md text-sm font-medium text-gray-400">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </NavLink>
+      </div>
+
+      <div className="container mx-auto px-4 pt-24 pb-12 relative z-10 max-w-5xl">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-100 mb-2">Update Problem</h1>
+          <p className="text-gray-400">Modify existing challenges and improve content.</p>
         </div>
 
         {/* Problem Selection */}
-        <div className="bg-gray-900 shadow-xl rounded-2xl p-8 border border-gray-800 mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-gray-100 flex items-center gap-2">
-            <FaInfoCircle className="text-blue-400" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl p-8 mb-8 shadow-xl"
+        >
+          <h2 className="text-xl font-bold mb-6 text-yellow-400 flex items-center gap-2">
+            <Search className="w-5 h-5" />
             Select Problem to Update
           </h2>
           <div className="form-control">
-            <label className="label">
-              <span className="label-text text-gray-400">Choose a problem</span>
+            <label className="label mb-2 block">
+              <span className="text-sm font-medium text-gray-400">Choose a problem</span>
             </label>
-            <select
-              className="select select-bordered w-full bg-gray-800 text-gray-200 border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 rounded-xl transition-all"
-              onChange={(e) => handleProblemSelect(e.target.value)}
-              disabled={loading}
-              value={selectedProblem?._id || ''}
-            >
-              <option value="">Select a problem...</option>
-              {problems.map((problem) => (
-                <option key={problem._id} value={problem._id}>
-                  {problem.title} ({problem.difficulty})
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500/50 appearance-none"
+                onChange={(e) => handleProblemSelect(e.target.value)}
+                disabled={loading}
+                value={selectedProblem?._id || ''}
+              >
+                <option value="" className="bg-gray-900">Select a problem...</option>
+                {problems.map((problem) => (
+                  <option key={problem._id} value={problem._id} className="bg-gray-900">
+                    {problem.title} ({problem.difficulty})
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                <Layers className="w-4 h-4" />
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Update Form - Only show when a problem is selected */}
         {selectedProblem && (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             {/* Basic Information */}
-            <section className="bg-gray-900 shadow-xl rounded-2xl p-8 border border-gray-800 transition-all duration-300 hover:shadow-2xl">
-              <h2 className="text-2xl font-bold mb-6 text-gray-100 flex items-center gap-2">
-                <FaInfoCircle className="text-blue-400" />
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl p-8 shadow-xl"
+            >
+              <h2 className="text-xl font-bold mb-6 text-blue-400 flex items-center gap-2">
+                <Info className="w-5 h-5" />
                 Basic Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="form-control md:col-span-2">
-                  <label className="label">
-                    <span className="label-text text-gray-400">Title</span>
+                  <label className="label mb-2 block">
+                    <span className="text-sm font-medium text-gray-400">Title</span>
                   </label>
                   <input
                     {...register('title')}
-                    className={`input input-bordered w-full bg-gray-800 text-gray-200 border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 rounded-xl transition-all ${errors.title && 'input-error border-red-500'}`}
+                    className={`w-full bg-gray-800/50 border ${errors.title ? 'border-red-500/50' : 'border-gray-700'} text-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-gray-600`}
                     disabled={loading}
                   />
                   {errors.title && (
-                    <span className="text-red-500 text-sm mt-1">{errors.title.message}</span>
+                    <span className="text-red-400 text-xs mt-1 flex items-center gap-1"><Info className="w-3 h-3" /> {errors.title.message}</span>
                   )}
                 </div>
                 <div className="form-control md:col-span-2">
-                  <label className="label">
-                    <span className="label-text text-gray-400">Description</span>
+                  <label className="label mb-2 block">
+                    <span className="text-sm font-medium text-gray-400">Description</span>
                   </label>
                   <textarea
                     {...register('description')}
-                    className={`textarea textarea-bordered h-32 w-full bg-gray-800 text-gray-200 border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 rounded-xl transition-all ${errors.description && 'textarea-error border-red-500'}`}
+                    className={`w-full h-32 bg-gray-800/50 border ${errors.description ? 'border-red-500/50' : 'border-gray-700'} text-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-gray-600 resize-y`}
                     disabled={loading}
                   />
                   {errors.description && (
-                    <span className="text-red-500 text-sm mt-1">{errors.description.message}</span>
+                    <span className="text-red-400 text-xs mt-1 flex items-center gap-1"><Info className="w-3 h-3" /> {errors.description.message}</span>
                   )}
                 </div>
                 <div className="form-control">
-                  <label className="label">
-                    <span className="label-text text-gray-400">Difficulty</span>
+                  <label className="label mb-2 block">
+                    <span className="text-sm font-medium text-gray-400">Difficulty</span>
                   </label>
-                  <select
-                    {...register('difficulty')}
-                    className={`select select-bordered w-full bg-gray-800 text-gray-200 border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 rounded-xl transition-all ${errors.difficulty && 'select-error border-red-500'}`}
-                    disabled={loading}
-                  >
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      {...register('difficulty')}
+                      className={`w-full bg-gray-800/50 border ${errors.difficulty ? 'border-red-500/50' : 'border-gray-700'} text-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500/50 appearance-none`}
+                      disabled={loading}
+                    >
+                      <option value="easy" className="bg-gray-900">Easy</option>
+                      <option value="medium" className="bg-gray-900">Medium</option>
+                      <option value="hard" className="bg-gray-900">Hard</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
                 <div className="form-control">
-                  <label className="label">
-                    <span className="label-text text-gray-400">Tag</span>
+                  <label className="label mb-2 block">
+                    <span className="text-sm font-medium text-gray-400">Tag</span>
                   </label>
-                  <select
-                    {...register('tags')}
-                    className={`select select-bordered w-full bg-gray-800 text-gray-200 border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 rounded-xl transition-all ${errors.tags && 'select-error border-red-500'}`}
-                    disabled={loading}
-                  >
-                    <option value="array">Array</option>
-                    <option value="linkedList">Linked List</option>
-                    <option value="graph">Graph</option>
-                    <option value="dp">DP</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      {...register('tags')}
+                      className={`w-full bg-gray-800/50 border ${errors.tags ? 'border-red-500/50' : 'border-gray-700'} text-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500/50 appearance-none`}
+                      disabled={loading}
+                    >
+                      <option value="array" className="bg-gray-900">Array</option>
+                      <option value="linkedList" className="bg-gray-900">Linked List</option>
+                      <option value="graph" className="bg-gray-900">Graph</option>
+                      <option value="dp" className="bg-gray-900">DP</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </section>
+            </motion.section>
 
             {/* Test Cases Section */}
-            <section className="bg-gray-900 shadow-xl rounded-2xl p-8 border border-gray-800 transition-all duration-300 hover:shadow-2xl">
-              <h2 className="text-2xl font-bold mb-6 text-gray-100 flex items-center gap-2">
-                <FaFileCode className="text-green-400" />
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl p-8 shadow-xl"
+            >
+              <h2 className="text-xl font-bold mb-6 text-green-400 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5" />
                 Test Cases
               </h2>
-              
+
               {/* Visible Test Cases */}
-              <div className="space-y-4 mb-6">
+              <div className="space-y-4 mb-8">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-medium text-gray-300">Visible Test Cases</h3>
+                  <h3 className="text-sm font-medium text-gray-300">Visible Test Cases</h3>
                   <button
                     type="button"
                     onClick={() => appendVisible({ input: '', output: '', explanation: '' })}
-                    className="btn btn-sm btn-primary bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-all"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded-lg text-sm transition-colors border border-green-500/20"
                     disabled={loading}
                   >
-                    <FaPlus /> Add Visible Case
+                    <Plus className="w-4 h-4" /> Add Case
                   </button>
                 </div>
-                {visibleFields.map((field, index) => (
-                  <div key={field.id} className="relative bg-gray-800 p-4 rounded-lg space-y-2 border border-gray-700">
-                    <button
-                      type="button"
-                      onClick={() => removeVisible(index)}
-                      className="absolute top-2 right-2 text-red-400 hover:text-red-500 transition-colors"
-                      disabled={loading}
+                <div className="space-y-4">
+                  {visibleFields.map((field, index) => (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      key={field.id}
+                      className="relative bg-black/20 p-5 rounded-2xl border border-gray-700/50 group"
                     >
-                      <FaTrashAlt />
-                    </button>
-                    <input
-                      {...register(`visibleTestCases.${index}.input`)}
-                      placeholder="Input"
-                      className="input input-bordered w-full bg-gray-700 text-gray-200 border-gray-600 focus:border-blue-500 rounded-lg"
-                      disabled={loading}
-                    />
-                    <input
-                      {...register(`visibleTestCases.${index}.output`)}
-                      placeholder="Output"
-                      className="input input-bordered w-full bg-gray-700 text-gray-200 border-gray-600 focus:border-blue-500 rounded-lg"
-                      disabled={loading}
-                    />
-                    <textarea
-                      {...register(`visibleTestCases.${index}.explanation`)}
-                      placeholder="Explanation"
-                      className="textarea textarea-bordered w-full bg-gray-700 text-gray-200 border-gray-600 focus:border-blue-500 rounded-lg"
-                      disabled={loading}
-                    />
-                  </div>
-                ))}
+                      <button
+                        type="button"
+                        onClick={() => removeVisible(index)}
+                        className="absolute top-4 right-4 text-gray-600 hover:text-red-400 transition-colors"
+                        disabled={loading}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Input</label>
+                          <input
+                            {...register(`visibleTestCases.${index}.input`)}
+                            className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:border-green-500/50 focus:outline-none"
+                            disabled={loading}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Output</label>
+                          <input
+                            {...register(`visibleTestCases.${index}.output`)}
+                            className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:border-green-500/50 focus:outline-none"
+                            disabled={loading}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Explanation</label>
+                        <textarea
+                          {...register(`visibleTestCases.${index}.explanation`)}
+                          rows={2}
+                          className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-lg px-3 py-2 text-sm focus:border-green-500/50 focus:outline-none resize-none"
+                          disabled={loading}
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
                 {errors.visibleTestCases && (
-                  <span className="text-red-500 text-sm mt-1">{errors.visibleTestCases.message}</span>
+                  <span className="text-red-400 text-xs mt-1 block">{errors.visibleTestCases.message}</span>
                 )}
               </div>
 
               {/* Hidden Test Cases */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-medium text-gray-300">Hidden Test Cases</h3>
+                  <h3 className="text-sm font-medium text-gray-300">Hidden Test Cases</h3>
                   <button
                     type="button"
                     onClick={() => appendHidden({ input: '', output: '' })}
-                    className="btn btn-sm btn-primary bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-all"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-sm transition-colors border border-blue-500/20"
                     disabled={loading}
                   >
-                    <FaPlus /> Add Hidden Case
+                    <Plus className="w-4 h-4" /> Add Case
                   </button>
                 </div>
-                {hiddenFields.map((field, index) => (
-                  <div key={field.id} className="relative bg-gray-800 p-4 rounded-lg space-y-2 border border-gray-700">
-                    <button
-                      type="button"
-                      onClick={() => removeHidden(index)}
-                      className="absolute top-2 right-2 text-red-400 hover:text-red-500 transition-colors"
-                      disabled={loading}
+                <div className="space-y-4">
+                  {hiddenFields.map((field, index) => (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      key={field.id}
+                      className="relative bg-black/20 p-5 rounded-2xl border border-gray-700/50"
                     >
-                      <FaTrashAlt />
-                    </button>
-                    <input
-                      {...register(`hiddenTestCases.${index}.input`)}
-                      placeholder="Input"
-                      className="input input-bordered w-full bg-gray-700 text-gray-200 border-gray-600 focus:border-blue-500 rounded-lg"
-                      disabled={loading}
-                    />
-                    <input
-                      {...register(`hiddenTestCases.${index}.output`)}
-                      placeholder="Output"
-                      className="input input-bordered w-full bg-gray-700 text-gray-200 border-gray-600 focus:border-blue-500 rounded-lg"
-                      disabled={loading}
-                    />
-                  </div>
-                ))}
+                      <button
+                        type="button"
+                        onClick={() => removeHidden(index)}
+                        className="absolute top-4 right-4 text-gray-600 hover:text-red-400 transition-colors"
+                        disabled={loading}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Input</label>
+                          <input
+                            {...register(`hiddenTestCases.${index}.input`)}
+                            className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:border-blue-500/50 focus:outline-none"
+                            disabled={loading}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Output</label>
+                          <input
+                            {...register(`hiddenTestCases.${index}.output`)}
+                            className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:border-blue-500/50 focus:outline-none"
+                            disabled={loading}
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
                 {errors.hiddenTestCases && (
-                  <span className="text-red-500 text-sm mt-1">{errors.hiddenTestCases.message}</span>
+                  <span className="text-red-400 text-xs mt-1 block">{errors.hiddenTestCases.message}</span>
                 )}
               </div>
-            </section>
+            </motion.section>
 
             {/* Code Templates Section */}
-            <section className="bg-gray-900 shadow-xl rounded-2xl p-8 border border-gray-800 transition-all duration-300 hover:shadow-2xl">
-              <h2 className="text-2xl font-bold mb-6 text-gray-100 flex items-center gap-2">
-                <FaCode className="text-purple-400" />
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl p-8 shadow-xl"
+            >
+              <h2 className="text-xl font-bold mb-6 text-purple-400 flex items-center gap-2">
+                <FileCode className="w-5 h-5" />
                 Code Templates
               </h2>
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {[0, 1, 2].map((index) => (
-                  <div key={index} className="space-y-4 bg-gray-800 p-6 rounded-xl border border-gray-700">
-                    <h3 className="font-semibold text-lg text-gray-300">
-                      {index === 0 ? 'C++' : index === 1 ? 'Java' : 'JavaScript'}
-                    </h3>
-                    
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text text-gray-400">Initial Code</span>
-                      </label>
+                  <div key={index} className="space-y-4 p-6 rounded-2xl border border-gray-800 bg-gray-900/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold uppercase tracking-wider">
+                        {index === 0 ? 'C++' : index === 1 ? 'Java' : 'JavaScript'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Initial Code</label>
                       <textarea
                         {...register(`startCode.${index}.initialCode`)}
-                        className="textarea textarea-bordered h-48 w-full bg-gray-700 text-gray-200 border-gray-600 font-mono resize-y focus:border-blue-500 rounded-lg"
+                        className="w-full h-48 bg-gray-950 border border-gray-800 text-gray-300 rounded-xl p-4 font-mono text-sm focus:border-purple-500/50 focus:outline-none resize-y"
                         disabled={loading}
                       />
                     </div>
-                    
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text text-gray-400">Reference Solution</span>
-                      </label>
+
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Reference Solution</label>
                       <textarea
                         {...register(`referenceSolution.${index}.completeCode`)}
-                        className="textarea textarea-bordered h-48 w-full bg-gray-700 text-gray-200 border-gray-600 font-mono resize-y focus:border-blue-500 rounded-lg"
+                        className="w-full h-48 bg-gray-950 border border-gray-800 text-gray-300 rounded-xl p-4 font-mono text-sm focus:border-purple-500/50 focus:outline-none resize-y"
                         disabled={loading}
                       />
                     </div>
                   </div>
                 ))}
               </div>
-            </section>
+            </motion.section>
 
-            <button
-              type="submit"
-              className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full py-4 rounded-xl shadow-lg font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <FaSpinner className="animate-spin" />
-                  Updating Problem...
-                </>
-              ) : (
-                'Update Problem'
-              )}
-            </button>
+            <div className="fixed bottom-6 right-6 z-40">
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-8 py-4 bg-yellow-600 hover:bg-yellow-500 text-white rounded-full shadow-2xl shadow-yellow-600/30 transition-all transform hover:scale-105 active:scale-95 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <RefreshCw className="w-5 h-5" />
+                )}
+                <span>{loading ? 'Updating...' : 'Update Problem'}</span>
+              </button>
+            </div>
+
           </form>
         )}
       </div>

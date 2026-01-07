@@ -178,10 +178,10 @@ const getProblemById = async (req, res) => {
         if (videos) {
             const responseData = {
                 ...getProblem.toObject(),
-                secureUrl : videos.secureUrl,
-                cloudinaryPublicId : videos.cloudinaryPublicId,
-                thumbnailUrl : videos.thumbnailUrl,
-                duration : videos.duration
+                secureUrl: videos.secureUrl,
+                cloudinaryPublicId: videos.cloudinaryPublicId,
+                thumbnailUrl: videos.thumbnailUrl,
+                duration: videos.duration
             }
 
             return res.status(200).send(responseData);
@@ -216,18 +216,44 @@ const getAllProblem = async (req, res) => {
 
 const solvedAllProblemByUser = async (req, res) => {
     try {
-        // const count = req.result.problemSolved.length;
         const userId = req.result._id;
 
-        //.populate fetch karke laayiega perticular information
-        const user = await User.findById(userId).populate({
-            path: 'problemSolved',
-            select: '_id title difficulty tags'
+        // Fetch all accepted submissions for the user
+        // Populate specific fields from the problem
+        const submissions = await submission.find({
+            userId,
+            status: 'accepted'
+        })
+            .populate({
+                path: 'problemId',
+                select: '_id title difficulty tags'
+            })
+            .sort({ createdAt: -1 }); // Newest first
+
+        // Use a Map to store unique problems (by problemId)
+        // Since we sorted by newest first, this will naturally keep the latest submission's date
+        // OR if we want the FIRST time they solved it, we'd sort ascending. 
+        // Typically for "Progress" (streak/recent activity), latest is better.
+        // For "Difficulty counts", unique is required.
+
+        const uniqueSolvedMap = new Map();
+
+        submissions.forEach(sub => {
+            if (sub.problemId && !uniqueSolvedMap.has(sub.problemId._id.toString())) {
+                uniqueSolvedMap.set(sub.problemId._id.toString(), {
+                    ...sub.problemId.toObject(),
+                    solvedAt: sub.createdAt // Add the timestamp
+                });
+            }
         });
-        res.status(201).send(user.problemSolved);
+
+        const solvedProblems = Array.from(uniqueSolvedMap.values());
+
+        res.status(200).send(solvedProblems);
     }
     catch (err) {
-        return res.status(401).send(err.message);
+        console.error("Error in solvedAllProblemByUser:", err);
+        return res.status(500).send(err.message);
     }
 }
 

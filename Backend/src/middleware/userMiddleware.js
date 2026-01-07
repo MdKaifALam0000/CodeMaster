@@ -24,7 +24,10 @@ const userMiddleware = async (req, res, next) => {
 
         const result = await User.findById(_id);
         if (!result) {
-            throw new Error('User not found');
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
+            });
         }
 
         //Redis ke blocklist mein present hain ki nahi
@@ -32,7 +35,10 @@ const userMiddleware = async (req, res, next) => {
 
         //if present then we will throw an error
         if (isBlocked) {
-            throw new Error('Token is blocked');
+            return res.status(401).json({
+                success: false,
+                error: 'Token is blocked or invalid'
+            });
         }
 
         req.result = result;
@@ -43,7 +49,11 @@ const userMiddleware = async (req, res, next) => {
 
     }
     catch (err) {
-        throw new Error(err.message);
+        console.error('Authentication error:', err);
+        return res.status(401).json({
+            success: false,
+            error: err.message || 'Authentication failed'
+        });
     }
 }
 

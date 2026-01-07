@@ -14,7 +14,7 @@ const submissionSchema = new Schema({
     },
     problemId: {
         type: Schema.Types.ObjectId,
-        ref: 'problem',
+        ref: 'Problem',
         required: true
     },
     code: {
@@ -74,4 +74,4 @@ const submissionSchema = new Schema({
 submissionSchema.index({userId:1 , problemId:1});
 
 
-module.exports = mongoose.model('submission', submissionSchema);
+module.exports = mongoose.model('Submission', submissionSchema);
