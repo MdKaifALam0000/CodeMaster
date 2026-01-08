@@ -11,8 +11,14 @@ const sendEmail = async (email, otp) => {
             }
         });
 
-        // Path to local logo file
-        const logoPath = path.join(__dirname, '../../../frontend/src/assets/websitelogo.avif');
+        // Path to local logo file - Updated to point to Backend assets
+        const logoPath = path.join(__dirname, '../assets/websitelogo.avif');
+
+        // Check if logo exists before sending
+        const fs = require('fs');
+        if (!fs.existsSync(logoPath)) {
+            console.warn(`Warning: Logo file not found at ${logoPath}`);
+        }
 
         const mailOptions = {
             from: process.env.MAIL_USER,
