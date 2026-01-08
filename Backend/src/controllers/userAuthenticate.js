@@ -23,13 +23,7 @@ const generateOTP = async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
         // Check if user already exists
-        let existingUser;
-        try {
-            existingUser = await User.findOne({ emailId });
-        } catch (dbErr) {
-            throw new Error(`Database Error: ${dbErr.message}`);
-        }
-
+        const existingUser = await User.findOne({ emailId });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -38,18 +32,10 @@ const generateOTP = async (req, res) => {
         }
 
         // Store OTP in Redis with 10 mins expiration (600 seconds)
-        try {
-            await redisClient.set(`otp:${emailId}`, otp, { EX: 600 });
-        } catch (redisErr) {
-            throw new Error(`Redis Error: ${redisErr.message}`);
-        }
+        await redisClient.set(`otp:${emailId}`, otp, { EX: 600 });
 
         // Send Email
-        try {
-            await sendEmail(emailId, otp);
-        } catch (emailErr) {
-            throw new Error(`Email Service Error: ${emailErr.message}`);
-        }
+        await sendEmail(emailId, otp);
 
         res.status(200).json({
             success: true,
@@ -60,8 +46,7 @@ const generateOTP = async (req, res) => {
         console.error('OTP Error:', err);
         res.status(500).json({
             success: false,
-            error: err.message || 'Failed to send OTP. Please try again.',
-            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+            error: 'Failed to send OTP. Please try again.'
         });
     }
 }

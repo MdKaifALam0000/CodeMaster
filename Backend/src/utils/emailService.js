@@ -3,37 +3,16 @@ const path = require('path');
 
 const sendEmail = async (email, otp) => {
     try {
-        console.log('Attempting to send email with settings:', {
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            user: '***' // hiding actual user for logs
-        });
-
         const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false, // true for 465, false for other ports
+            service: 'gmail',
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
-            },
-            tls: {
-                rejectUnauthorized: false
-            },
-            connectionTimeout: 10000,
-            greetingTimeout: 5000,
-            socketTimeout: 10000
+            }
         });
 
-        // Path to local logo file - Updated to point to Backend assets
-        const logoPath = path.join(__dirname, '../assets/websitelogo.avif');
-
-        // Check if logo exists before sending
-        const fs = require('fs');
-        if (!fs.existsSync(logoPath)) {
-            console.warn(`Warning: Logo file not found at ${logoPath}`);
-        }
+        // Path to local logo file
+        const logoPath = path.join(__dirname, '../../../frontend/src/assets/websitelogo.avif');
 
         const mailOptions = {
             from: process.env.MAIL_USER,
