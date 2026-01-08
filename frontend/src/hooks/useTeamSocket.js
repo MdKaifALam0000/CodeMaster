@@ -12,11 +12,10 @@ import {
   removeParticipant,
   setTestResults
 } from '../teamCodingSlice';
+import API_BASE_URL from '../config/api';
 import Cookies from 'js-cookie';
 
-const SOCKET_URL = import.meta.env.PROD
-  ? 'https://codemaster-1.onrender.com'
-  : 'http://localhost:3000';
+const SOCKET_URL = API_BASE_URL;
 
 export const useTeamSocket = () => {
   const socketRef = useRef(null);

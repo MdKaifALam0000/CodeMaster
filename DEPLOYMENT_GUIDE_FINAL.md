@@ -46,7 +46,7 @@ The `VITE_API_URL` should already be set automatically by the Blueprint. If not:
 
 | Key | Value |
 | :--- | :--- |
-| `VITE_API_URL` | `https://codemaster-backend.onrender.com` (Your backend URL) |
+| `VITE_API_URL` | `https://codemaster-1.onrender.com` (Your backend URL) |
 
 ## Phase 3: Network Access (MongoDB)
 

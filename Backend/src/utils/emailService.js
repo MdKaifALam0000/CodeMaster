@@ -12,7 +12,7 @@ const sendEmail = async (email, otp) => {
         });
 
         // Path to local logo file
-        const logoPath = path.join(__dirname, '../assets/websitelogo.avif');
+        const logoPath = path.join(__dirname, '../../../frontend/src/assets/websitelogo.avif');
 
         const mailOptions = {
             from: process.env.MAIL_USER,
