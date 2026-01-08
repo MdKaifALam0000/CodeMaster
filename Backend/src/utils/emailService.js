@@ -4,11 +4,17 @@ const path = require('path');
 const sendEmail = async (email, otp) => {
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // true for 465, false for other ports
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
-            }
+            },
+            // timeouts to prevent hanging
+            connectionTimeout: 10000,
+            greetingTimeout: 5000,
+            socketTimeout: 10000
         });
 
         // Path to local logo file - Updated to point to Backend assets
