@@ -3,15 +3,24 @@ const path = require('path');
 
 const sendEmail = async (email, otp) => {
     try {
+        console.log('Attempting to send email with settings:', {
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            user: '***' // hiding actual user for logs
+        });
+
         const transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
-            port: 465,
-            secure: true, // true for 465, false for other ports
+            port: 587,
+            secure: false, // true for 465, false for other ports
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
             },
-            // timeouts to prevent hanging
+            tls: {
+                rejectUnauthorized: false
+            },
             connectionTimeout: 10000,
             greetingTimeout: 5000,
             socketTimeout: 10000
