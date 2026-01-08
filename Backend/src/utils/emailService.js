@@ -11,14 +11,10 @@ const sendEmail = async (email, otp) => {
             }
         });
 
-        // Path to local logo file
-        const logoPath = path.join(__dirname, '../../../frontend/src/assets/websitelogo.avif');
+        const fs = require('fs');
 
-        const mailOptions = {
-            from: process.env.MAIL_USER,
-            to: email,
-            subject: 'Verify Your Email - The Turing Forge',
-            html: `
+        // Define HTML content first
+        let htmlContent = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
                     <div style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 30px; text-align: center;">
                          <img src="cid:logo" alt="The Turing Forge" style="height: 60px; margin-bottom: 10px;" />
@@ -53,14 +49,32 @@ const sendEmail = async (email, otp) => {
                         </p>
                     </div>
                 </div>
-            `,
-            attachments: [
-                {
-                    filename: 'websitelogo.avif',
-                    path: logoPath,
-                    cid: 'logo' // Data URI for inline image
-                }
-            ]
+            `;
+
+        let attachments = [];
+
+        // Path to local logo file
+        const logoPath = path.join(__dirname, '../../../frontend/src/assets/websitelogo.avif');
+
+        // Check if logo exists
+        if (fs.existsSync(logoPath)) {
+            attachments.push({
+                filename: 'websitelogo.avif',
+                path: logoPath,
+                cid: 'logo' // Data URI for inline image
+            });
+        } else {
+            console.warn('⚠️ Logo file not found at:', logoPath);
+            // Remove the image tag if logo is missing to avoid broken image icon
+            htmlContent = htmlContent.replace(/<img src="cid:logo" [^>]*>/, '');
+        }
+
+        const mailOptions = {
+            from: process.env.MAIL_USER,
+            to: email,
+            subject: 'Verify Your Email - The Turing Forge',
+            html: htmlContent,
+            attachments: attachments
         };
 
         const info = await transporter.sendMail(mailOptions);

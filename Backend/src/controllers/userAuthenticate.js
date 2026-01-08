@@ -46,7 +46,8 @@ const generateOTP = async (req, res) => {
         console.error('OTP Error:', err);
         res.status(500).json({
             success: false,
-            error: 'Failed to send OTP. Please try again.'
+            error: 'Failed to send OTP. Please try again.',
+            details: err.message
         });
     }
 }
