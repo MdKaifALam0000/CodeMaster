@@ -5,7 +5,16 @@ const redisClient = require('../config/redis');
 
 const userMiddleware = async (req, res, next) => {
     try {
-        const { token } = req.cookies;
+        let { token } = req.cookies;
+
+        // If no cookie, check Authorization header directly
+        if (!token && req.headers.authorization) {
+            const authHeader = req.headers.authorization;
+            if (authHeader.startsWith('Bearer ')) {
+                token = authHeader.substring(7);
+            }
+        }
+
         if (!token) {
             return res.status(401).json({
                 success: false,
