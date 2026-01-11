@@ -1,17 +1,35 @@
 const nodemailer = require("nodemailer");
 
 const mailSender = async (email, title, body, attachments = []) => {
+    // Validation
+    if (!process.env.MAIL_HOST || !process.env.MAIL_USER || !process.env.MAIL_PASS) {
+        console.error("❌ Missing Mail Environment Variables:", {
+            host: !!process.env.MAIL_HOST,
+            user: !!process.env.MAIL_USER,
+            pass: !!process.env.MAIL_PASS
+        });
+        throw new Error("Server Email Configuration is missing. Check environment variables.");
+    }
+
     try {
-        let transporter = nodemailer.createTransport({
+        const config = {
             host: process.env.MAIL_HOST,
-            service: process.env.MAIL_HOST === 'smtp.gmail.com' ? 'gmail' : undefined, // Auto-configure for Gmail
+            service: process.env.MAIL_HOST === 'smtp.gmail.com' ? 'gmail' : undefined,
             port: 587,
-            secure: false, // true for 465, false for other ports
+            secure: false,
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS,
             }
-        })
+        };
+
+        console.log("📧 Attempting to send email with config:", {
+            host: config.host,
+            user: config.auth.user,
+            service: config.service
+        });
+
+        let transporter = nodemailer.createTransport(config);
 
         let info = await transporter.sendMail({
             from: `"CodeMaster" <${process.env.MAIL_USER}>`, // Use your verified email
