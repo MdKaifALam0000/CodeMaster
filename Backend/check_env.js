@@ -4,4 +4,5 @@ console.log('Testing Environment Variables...');
 console.log('MAIL_USER is set:', !!process.env.MAIL_USER);
 console.log('MAIL_PASS is set:', !!process.env.MAIL_PASS);
 console.log('MAIL_HOST is set:', !!process.env.MAIL_HOST);
+console.log('NODE_ENV is:', process.env.NODE_ENV);
 console.log('Current Directory:', process.cwd());
