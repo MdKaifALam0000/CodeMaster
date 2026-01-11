@@ -33,8 +33,15 @@ const userMiddleware = async (req, res, next) => {
         //Redis ke blocklist mein present hain ki nahi
         const isBlocked = await redisClient.get(`token:${token}`);
 
+        console.log('🔍 [Middleware] Token Check:', {
+            tokenId: _id,
+            redisKey: `token:${token}`,
+            isBlocked: isBlocked
+        });
+
         //if present then we will throw an error
         if (isBlocked) {
+            console.error('🚫 [Middleware] Token Blocked by Redis');
             return res.status(401).json({
                 success: false,
                 error: 'Token is blocked or invalid'

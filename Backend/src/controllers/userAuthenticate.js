@@ -1,5 +1,5 @@
 const OTP = require('../models/OTP'); // Import OTP model
-// const redisClient = require('../config/redis'); // Remove Redis
+const redisClient = require('../config/redis');
 const User = require('../models/user');
 const validate = require('../utils/validate');
 const submission = require('../models/submission')
