@@ -10,6 +10,8 @@ const jwt = require('jsonwebtoken');
 
 
 
+
+
 const generateOTP = async (req, res) => {
     try {
         const { emailId } = req.body;
@@ -23,8 +25,14 @@ const generateOTP = async (req, res) => {
         // Generate 6 digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ emailId });
+        // 1. Check DB Connection (User Check)
+        let existingUser;
+        try {
+            existingUser = await User.findOne({ emailId });
+        } catch (dbErr) {
+            throw new Error(`Database Error (User Check): ${dbErr.message}`);
+        }
+
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -32,11 +40,16 @@ const generateOTP = async (req, res) => {
             });
         }
 
-        // Create OTP document - Pre-save hook will send email
-        await OTP.create({
-            email: emailId,
-            otp: otp
-        });
+        // 2. Send Email (OTP Create)
+        try {
+            // Create OTP document - Pre-save hook will send email
+            await OTP.create({
+                email: emailId,
+                otp: otp
+            });
+        } catch (emailErr) {
+            throw new Error(`Email/OTP Error: ${emailErr.message}`);
+        }
 
         res.status(200).json({
             success: true,
@@ -47,8 +60,9 @@ const generateOTP = async (req, res) => {
         console.error('OTP Error:', err);
         res.status(500).json({
             success: false,
-            error: 'Failed to send OTP. Please try again.',
-            details: err.message
+            error: 'Failed to send OTP.',
+            details: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
         });
     }
 }
