@@ -1,11 +1,12 @@
-const redisClient = require('../config/redis');
+const OTP = require('../models/OTP'); // Import OTP model
+// const redisClient = require('../config/redis'); // Remove Redis
 const User = require('../models/user');
 const validate = require('../utils/validate');
 const submission = require('../models/submission')
 //for hashing the password
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const sendEmail = require('../utils/emailService');
+// const sendEmail = require('../utils/emailService'); // Handled by OTP model now
 
 
 
@@ -31,11 +32,11 @@ const generateOTP = async (req, res) => {
             });
         }
 
-        // Store OTP in Redis with 10 mins expiration (600 seconds)
-        await redisClient.set(`otp:${emailId}`, otp, { EX: 600 });
-
-        // Send Email
-        await sendEmail(emailId, otp);
+        // Create OTP document - Pre-save hook will send email
+        await OTP.create({
+            email: emailId,
+            otp: otp
+        });
 
         res.status(200).json({
             success: true,
@@ -61,12 +62,18 @@ const register = async (req, res) => {
         //all data  will be in the req.body
         const { firstName, emailId, password, otp } = req.body;
 
-        // Verify OTP
-        const storedOTP = await redisClient.get(`otp:${emailId}`);
-        if (!storedOTP || storedOTP !== otp) {
+        // Verify OTP - Find latest OTP for this email
+        const recentOtp = await OTP.find({ email: emailId }).sort({ createdAt: -1 }).limit(1);
+
+        if (recentOtp.length === 0) {
             return res.status(400).json({
                 success: false,
-                error: 'Invalid or expired OTP'
+                error: 'OTP expired or not found'
+            });
+        } else if (otp !== recentOtp[0].otp) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid OTP'
             });
         }
 
@@ -96,8 +103,8 @@ const register = async (req, res) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
         });
-        // Cleanup OTP after successful registration
-        await redisClient.del(`otp:${emailId}`);
+
+        // No need to manually delete OTP, handled by TTL or let it expire
 
         res.status(201).json({
             user: reply,
