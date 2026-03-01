@@ -7,7 +7,8 @@ A comprehensive coding platform with problem-solving capabilities, AI assistance
 ---
 
 Here’s a snapshot of the **CodeMaster Dashboard**:
-<img width="952" height="441" alt="{B7DC8AD2-9CFF-433F-9DBB-724D0EEF2241}" src="https://github.com/user-attachments/assets/2e92e878-9c31-4c30-beeb-6b02bfb79676" />
+ /<img width="952" height="436" alt="Screenshot 2026-01-05 204523" src="https://github.com/user-attachments/assets/95376b82-a407-488e-896e-6cacd4d8f0f4" />
+
 ---
 
 ## 🚀 Features
