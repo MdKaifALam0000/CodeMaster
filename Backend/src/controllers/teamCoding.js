@@ -45,7 +45,6 @@ const createRoom = async (req, res) => {
             maxParticipants: maxParticipants || 6,
             language: language || 'javascript',
             code: initialCode,
-            code: initialCode,
             isActive: true,
             isLocked: false, // Explicitly set
             expiresAt: timeLimit ? new Date(Date.now() + timeLimit * 60000) : null // Set expiration if timeLimit provided

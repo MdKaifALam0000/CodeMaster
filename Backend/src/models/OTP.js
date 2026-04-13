@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const mailSender = require("../utils/mailSender");
 const emailTemplate = require("../mail/template/emailVerificationTemplate");
+const { resetPasswordTemplate } = require("../mail/template/resetPasswordTemplate");
+
 const OTPSchema = new mongoose.Schema({
     email: {
         type: String,
@@ -10,6 +12,11 @@ const OTPSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    type: {
+        type: String,
+        enum: ['Registration', 'ResetPassword'],
+        default: 'Registration'
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -18,17 +25,29 @@ const OTPSchema = new mongoose.Schema({
 });
 
 // Define a function to send emails
-async function sendVerificationEmail(email, otp) {
-    // Create a transporter to send emails
-
-    // Define the email options
-
-    // Send the email
+async function sendVerificationEmail(email, otp, type) {
     try {
-        const { html, attachments } = emailTemplate(otp);
+        let html;
+        let attachments;
+        let subject;
+
+        if (type === 'ResetPassword') {
+            const template = resetPasswordTemplate(otp);
+            // resetPasswordTemplate returns a string directly, but sometimes templates return {html, attachments}. 
+            // In our template we return just string.
+            html = typeof template === 'string' ? template : template.html;
+            attachments = typeof template === 'string' ? [] : template.attachments;
+            subject = "Reset Password Verification - CodeMaster";
+        } else {
+            const template = emailTemplate(otp);
+            html = typeof template === 'string' ? template : template.html;
+            attachments = typeof template === 'string' ? [] : template.attachments;
+            subject = "Verification Email - CodeMaster";
+        }
+
         const mailResponse = await mailSender(
             email,
-            "Verification Email",
+            subject,
             html,
             attachments
         );
@@ -48,7 +67,7 @@ OTPSchema.pre("save", async function (next) {
 
     // Only send an email when a new document is created
     if (this.isNew) {
-        await sendVerificationEmail(this.email, this.otp);
+        await sendVerificationEmail(this.email, this.otp, this.type);
     }
     next();
 });

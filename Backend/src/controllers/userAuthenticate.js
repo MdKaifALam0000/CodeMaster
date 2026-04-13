@@ -8,10 +8,95 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 // const sendEmail = require('../utils/emailService'); // Handled by OTP model now
 
+const forgotPassword = async (req, res) => {
+    try {
+        const { emailId } = req.body;
+        if (!emailId) {
+            return res.status(400).json({ success: false, error: 'Email is required' });
+        }
 
+        // Check if user exists
+        const user = await User.findOne({ emailId });
+        if (!user) {
+            // To prevent email enumeration, we might still send success, but for now we'll send error
+            return res.status(404).json({ success: false, error: 'User with this email does not exist' });
+        }
 
+        // Generate 6 digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+        // Create OTP document - Pre-save hook will send email
+        await OTP.create({
+            email: emailId,
+            otp: otp,
+            type: 'ResetPassword'
+        });
 
+        res.status(200).json({
+            success: true,
+            message: 'Password reset OTP sent successfully to your email'
+        });
+    } catch (err) {
+        console.error('Forgot Password Error:', err);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to process forgot password request.',
+            details: err.message
+        });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { emailId, otp, newPassword } = req.body;
+
+        if (!emailId || !otp || !newPassword) {
+            return res.status(400).json({ success: false, error: 'Email, OTP, and new password are required' });
+        }
+
+        // Verify OTP - Find latest OTP for this email
+        const recentOtp = await OTP.find({ email: emailId, type: 'ResetPassword' }).sort({ createdAt: -1 }).limit(1);
+
+        if (recentOtp.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'OTP expired or not found'
+            });
+        } else if (otp !== recentOtp[0].otp) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid OTP'
+            });
+        }
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update the user's password
+        const user = await User.findOneAndUpdate(
+            { emailId },
+            { password: hashedPassword },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Password has been reset successfully. You can now login with your new password.'
+        });
+
+    } catch (err) {
+        console.error('Reset Password Error:', err);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to reset password.',
+            details: err.message
+        });
+    }
+};
 const generateOTP = async (req, res) => {
     try {
         const { emailId } = req.body;
@@ -129,7 +214,7 @@ const register = async (req, res) => {
     } catch (err) {
         console.error(err);
         return res.status(400).json({
-            sucess: false,
+            success: false,
             error: err.message
         });
     }
@@ -143,7 +228,7 @@ const login = async (req, res) => {
         //checking if the emailId and password are present or not
         if (!emailId || !password) {
             return res.status(400).json({
-                sucess: false,
+                success: false,
                 error: 'Email and Password are required'
             });
         }
@@ -242,14 +327,14 @@ const adminRegister = async (req, res) => {
         //setting the token in the cookie
         res.cookie('token', token, { maxAge: 60 * 60 * 1000 });
         res.status(201).send({
-            sucess: true,
+            success: true,
             message: 'User Registered Successfully',
         })
 
     } catch (err) {
         console.error(err);
         return res.status(400).json({
-            sucess: false,
+            success: false,
             error: err.message
         });
     }
@@ -277,4 +362,4 @@ const deleteProfile = async (req, res) => {
     }
 }
 
-module.exports = { register, login, logout, adminRegister, deleteProfile, generateOTP };
+module.exports = { register, login, logout, adminRegister, deleteProfile, generateOTP, forgotPassword, resetPassword };

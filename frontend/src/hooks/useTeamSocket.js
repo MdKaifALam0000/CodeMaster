@@ -12,10 +12,11 @@ import {
   removeParticipant,
   setTestResults
 } from '../teamCodingSlice';
-import API_BASE_URL from '../config/api';
 import Cookies from 'js-cookie';
 
-const SOCKET_URL = API_BASE_URL;
+const SOCKET_URL = import.meta.env.PROD 
+    ? (import.meta.env.VITE_API_URL || 'https://codemaster-1.onrender.com')
+    : 'http://localhost:3000';
 
 export const useTeamSocket = () => {
   const socketRef = useRef(null);
@@ -32,11 +33,10 @@ export const useTeamSocket = () => {
     }
 
     // Initialize socket connection
-    // Try localStorage first (as it's where we store the token for socket), then cookie as fallback
-    const token = localStorage.getItem('token') || Cookies.get('token');
-
+    const token = Cookies.get('token');
+    
     if (!token) {
-      console.log('❌ No authentication token found in localStorage or cookies');
+      console.log('❌ No authentication token found - user not logged in');
       dispatch(setConnected(false));
       return;
     }
@@ -81,7 +81,7 @@ export const useTeamSocket = () => {
     socket.on('disconnect', (reason) => {
       console.log('⚠️ Disconnected from Socket.IO server. Reason:', reason);
       dispatch(setConnected(false));
-
+      
       // Attempt to reconnect if disconnected unexpectedly
       if (reason === 'io server disconnect') {
         socket.connect();

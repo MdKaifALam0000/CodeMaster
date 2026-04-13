@@ -70,12 +70,14 @@ const submitCode = async (req, res) => {
         memory = Math.max(memory, test.memory);
       } else {
         if (test.status_id == 4) {
-          status = 'error'
-          errorMessage = test.stderr
-        }
-        else {
-          status = 'wrong'
-          errorMessage = test.stderr
+          // Compilation error — stop processing
+          status = 'error';
+          errorMessage = test.compile_output || test.stderr || 'Compilation error';
+          break;
+        } else {
+          // Wrong answer or runtime error
+          status = 'wrong';
+          errorMessage = test.stderr || 'Wrong answer';
         }
       }
     }

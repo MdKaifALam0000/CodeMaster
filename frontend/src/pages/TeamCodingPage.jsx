@@ -13,15 +13,10 @@ import {
   Copy,
   Check,
   Crown,
-  Sparkles,
-  Clock,
-  XCircle,
-  Trophy,
-  Code,
-  Hash
+  Sparkles
 } from 'lucide-react';
 import { useTeamSocket } from '../hooks/useTeamSocket';
-import { getRoomById, leaveRoom as leaveRoomAction, deleteRoom } from '../teamCodingSlice';
+import { getRoomById, leaveRoom as leaveRoomAction } from '../teamCodingSlice';
 import axiosClient from '../utils/axiosClient';
 
 const langMap = {
@@ -94,12 +89,12 @@ const TeamCodingPage = () => {
   // Handle code change with debounce
   const handleEditorChange = (value) => {
     setLocalCode(value || '');
-
+    
     // Debounce code sync
     if (window.codeChangeTimeout) {
       clearTimeout(window.codeChangeTimeout);
     }
-
+    
     window.codeChangeTimeout = setTimeout(() => {
       if (roomId) {
         sendCodeChange(roomId, value || '', editorRef.current?.getPosition());
@@ -226,49 +221,12 @@ const TeamCodingPage = () => {
   };
 
   const handleLeaveRoom = async () => {
-    if (confirm('Are you sure you want to leave? The room will remain active.')) {
-      if (roomId) {
-        leaveRoom(roomId);
-        await dispatch(leaveRoomAction(roomId));
-        navigate('/team-coding');
-      }
+    if (roomId) {
+      leaveRoom(roomId);
+      await dispatch(leaveRoomAction(roomId));
+      navigate('/team-coding');
     }
   };
-
-  const handleCloseRoom = async () => {
-    if (confirm('Are you sure you want to CLOSE this room? It will be deleted for everyone.')) {
-      if (roomId) {
-        await dispatch(deleteRoom(roomId));
-        navigate('/team-coding');
-      }
-    }
-  };
-
-  // Timer Logic
-  const [timeLeft, setTimeLeft] = useState(null);
-
-  useEffect(() => {
-    if (!currentRoom?.expiresAt) return;
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      const expiration = new Date(currentRoom.expiresAt);
-      const diff = expiration - now;
-
-      if (diff <= 0) {
-        setTimeLeft("Expired");
-        clearInterval(interval);
-        // Optionally auto-leave or show alert
-      } else {
-        const minutes = Math.floor((diff / 1000 / 60) % 60);
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const seconds = Math.floor((diff / 1000) % 60);
-        setTimeLeft(`${hours > 0 ? hours + 'h ' : ''}${minutes}m ${seconds}s`);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [currentRoom?.expiresAt]);
 
   const copyRoomLink = () => {
     const link = `${window.location.origin}/team-coding/room/${roomId}`;
@@ -334,13 +292,13 @@ const TeamCodingPage = () => {
               Problem: {currentRoom.problemId?.title} ({currentRoom.problemId?.difficulty})
             </p>
             <div className="card-actions justify-center gap-2">
-              <button
+              <button 
                 className="btn btn-primary"
                 onClick={() => navigate('/login')}
               >
                 Login to Join
               </button>
-              <button
+              <button 
                 className="btn btn-outline"
                 onClick={() => navigate('/signup')}
               >
@@ -359,192 +317,124 @@ const TeamCodingPage = () => {
   const isHost = currentRoom.host._id === user._id;
 
   return (
-    <div className="h-screen flex flex-col bg-[#0B0F19] text-gray-300 font-sans selection:bg-blue-500/30 overflow-hidden">
-
-      {/* Background Ambience */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[100px]" />
-      </div>
-
+    <div className="h-screen flex flex-col bg-base-100">
       {/* Header */}
-      <div className="navbar relative z-10 h-16 min-h-[4rem] px-4 bg-gray-900/60 backdrop-blur-xl border-b border-gray-800/60 flex items-center justify-between">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Code className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-100 leading-tight">{currentRoom.roomName}</h1>
-              <div className="flex items-center gap-2 text-xs">
-                <span className={`px-1.5 py-0.5 rounded border ${currentRoom.problemId.difficulty === 'Easy' ? 'border-green-500/30 text-green-400 bg-green-500/10' :
-                  currentRoom.problemId.difficulty === 'Medium' ? 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10' :
-                    'border-red-500/30 text-red-400 bg-red-500/10'
-                  }`}>
-                  {currentRoom.problemId.difficulty}
-                </span>
-                <span className="text-gray-500">•</span>
-                <span className="text-gray-400">{currentRoom.problemId.tags}</span>
-              </div>
-            </div>
+      <div className="navbar bg-base-200 border-b border-base-300 px-4">
+        <div className="flex-1">
+          <h1 className="text-xl font-bold">{currentRoom.roomName}</h1>
+          <div className={`badge ${getDifficultyColor(currentRoom.problemId.difficulty)} ml-3`}>
+            {currentRoom.problemId.difficulty}
           </div>
-
+          <div className="badge badge-primary ml-2">{currentRoom.problemId.tags}</div>
           {isHost && (
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-medium">
+            <div className="badge badge-warning ml-2 gap-1">
               <Crown className="w-3 h-3" />
-              <span>Host</span>
+              Host
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex-none gap-2">
           {/* Connection Status */}
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${connected
-            ? 'bg-green-500/10 border-green-500/20 text-green-400'
-            : 'bg-red-500/10 border-red-500/20 text-red-400'
-            }`}>
-            <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div>
-            <span className="text-xs font-medium">{connected ? 'Connected' : 'Disconnected'}</span>
+          <div className={`badge ${connected ? 'badge-success' : 'badge-error'} gap-2`}>
+            <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+            {connected ? 'Connected' : 'Disconnected'}
           </div>
-
-          {/* Copy Room Link */}
-          <div className="tooltip tooltip-bottom" data-tip={copied ? "Copied!" : "Share Room Link"}>
-            <button
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800/50 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors border border-gray-700/50"
-              onClick={copyRoomLink}
-            >
-              {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-            </button>
-          </div>
-
-          {/* Timer Display */}
-          {timeLeft && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 text-gray-300 font-mono text-sm">
-              <Clock className="w-4 h-4 text-blue-400" />
-              {timeLeft}
+          {!connected && (
+            <div className="tooltip tooltip-left" data-tip="Socket.IO connection failed. Check console for details.">
+              <div className="badge badge-warning">⚠️</div>
             </div>
           )}
 
-          <div className="h-6 w-px bg-gray-800 mx-1"></div>
+          {/* Copy Room Link */}
+          <button className="btn btn-sm btn-ghost gap-2" onClick={copyRoomLink}>
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            {copied ? 'Copied!' : 'Share'}
+          </button>
 
-          {/* Leave/Close Buttons */}
-          <div className="flex gap-2">
-            {isHost && (
-              <div className="tooltip tooltip-bottom" data-tip="Close Room (End Session)">
-                <button
-                  className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white text-red-500 transition-all shadow-lg shadow-red-500/10"
-                  onClick={handleCloseRoom}
-                >
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-
-            <div className="tooltip tooltip-bottom" data-tip="Leave Room">
-              <button
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors border border-gray-700"
-                onClick={handleLeaveRoom}
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          {/* Leave Room */}
+          <button className="btn btn-sm btn-error gap-2" onClick={handleLeaveRoom}>
+            <LogOut className="w-4 h-4" />
+            Leave
+          </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden relative z-10">
-
+      <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Problem Description */}
-        <div className="w-[28%] flex flex-col border-r border-gray-800/60 bg-gray-900/30 backdrop-blur-sm">
-          <div className="p-4 border-b border-gray-800/60 flex items-center justify-between bg-gray-900/50">
-            <h2 className="font-semibold text-gray-200 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-blue-400" />
-              Problem Statement
-            </h2>
+        <div className="w-1/4 border-r border-base-300 flex flex-col">
+          <div className="p-4 border-b border-base-300">
+            <h2 className="text-lg font-semibold">{currentRoom.problemId.title}</h2>
           </div>
-          <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
-            <h1 className="text-xl font-bold text-gray-100 mb-4">{currentRoom.problemId.title}</h1>
-            <div className="prose prose-invert prose-sm max-w-none">
-              <div className="whitespace-pre-wrap leading-relaxed text-gray-300/90">
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="prose max-w-none">
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
                 {currentRoom.problemId.description}
               </div>
             </div>
 
             {currentRoom.problemId.visibleTestCases && (
-              <div className="mt-8 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Examples</h3>
-                {currentRoom.problemId.visibleTestCases.map((example, index) => (
-                  <div key={index} className="bg-gray-800/40 border border-gray-700/50 rounded-xl p-4 text-sm">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                      <span className="font-medium text-gray-300">Test Case</span>
-                    </div>
-                    <div className="space-y-2 font-mono text-xs">
-                      <div className="bg-gray-900/50 p-2 rounded border border-gray-800">
-                        <span className="text-gray-500 block mb-1">Input:</span>
-                        <span className="text-green-400">{example.input}</span>
-                      </div>
-                      <div className="bg-gray-900/50 p-2 rounded border border-gray-800">
-                        <span className="text-gray-500 block mb-1">Output:</span>
-                        <span className="text-purple-400">{example.output}</span>
+              <div className="mt-6">
+                <h3 className="font-semibold mb-3">Examples:</h3>
+                <div className="space-y-3">
+                  {currentRoom.problemId.visibleTestCases.map((example, index) => (
+                    <div key={index} className="bg-base-200 p-3 rounded-lg text-sm">
+                      <h4 className="font-semibold mb-2">Example {index + 1}:</h4>
+                      <div className="space-y-1 font-mono text-xs">
+                        <div>
+                          <strong>Input:</strong> {example.input}
+                        </div>
+                        <div>
+                          <strong>Output:</strong> {example.output}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
         </div>
 
         {/* Center - Code Editor */}
-        <div className="flex-1 flex flex-col bg-[#1e1e1e]">
-          {/* Editor Toolbar */}
-          <div className="h-12 border-b border-[#2d2d2d] bg-[#1e1e1e] flex items-center justify-between px-4">
-            <div className="flex items-center bg-[#2d2d2d] rounded-lg p-0.5">
+        <div className="flex-1 flex flex-col">
+          {/* Language Selector */}
+          <div className="flex justify-between items-center p-3 border-b border-base-300 bg-base-200">
+            <div className="flex gap-2">
               {['javascript', 'java', 'cpp'].map((lang) => (
                 <button
                   key={lang}
-                  disabled={!isHost}
+                  className={`btn btn-sm ${language === lang ? 'btn-primary' : 'btn-ghost'}`}
                   onClick={() => handleLanguageChange(lang)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${language === lang
-                    ? 'bg-[#3e3e3e] text-blue-400 shadow-sm'
-                    : 'text-gray-400 hover:text-gray-200'
-                    } ${!isHost && 'opacity-70 cursor-not-allowed'}`}
+                  disabled={!isHost}
                 >
                   {lang === 'cpp' ? 'C++' : lang === 'javascript' ? 'JavaScript' : 'Java'}
                 </button>
               ))}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2">
               <button
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${loading
-                  ? 'bg-gray-700/50 text-gray-400 cursor-wait'
-                  : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                  }`}
+                className={`btn btn-outline btn-sm ${loading ? 'loading' : ''}`}
                 onClick={handleRunCode}
                 disabled={loading}
               >
-                {loading ? <div className="w-3 h-3 border-2 border-gray-400 border-t-white rounded-full animate-spin"></div> : <Play className="w-3.5 h-3.5" />}
-                Run Code
+                <Play className="w-4 h-4" />
+                Run
               </button>
               <button
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${loading
-                  ? 'bg-blue-600/50 text-blue-200 cursor-wait'
-                  : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                  }`}
+                className={`btn btn-primary btn-sm ${loading ? 'loading' : ''}`}
                 onClick={handleSubmitCode}
                 disabled={loading}
               >
-                {loading ? <div className="w-3 h-3 border-2 border-blue-200 border-t-white rounded-full animate-spin"></div> : <Send className="w-3.5 h-3.5" />}
                 Submit
               </button>
             </div>
           </div>
 
           {/* Monaco Editor */}
-          <div className="flex-1 relative">
+          <div className="flex-1">
             <Editor
               height="100%"
               language={getLanguageForMonaco(language)}
@@ -553,295 +443,254 @@ const TeamCodingPage = () => {
               onMount={handleEditorDidMount}
               theme="vs-dark"
               options={{
-                fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
                 fontSize: 14,
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
-                padding: { top: 16, bottom: 16 },
                 tabSize: 2,
                 insertSpaces: true,
                 wordWrap: 'on',
                 lineNumbers: 'on',
+                glyphMargin: false,
+                folding: true,
+                lineDecorationsWidth: 10,
+                lineNumbersMinChars: 3,
                 renderLineHighlight: 'line',
-                smoothScrolling: true,
-                cursorBlinking: 'smooth',
-                cursorSmoothCaretAnimation: 'on',
+                selectOnLineNumbers: true,
+                roundedSelection: false,
+                readOnly: false,
+                cursorStyle: 'line',
+                mouseWheelZoom: true
               }}
             />
           </div>
+
         </div>
 
         {/* Right Sidebar - Tabbed Interface */}
-        <div className="w-80 flex flex-col border-l border-gray-800/60 bg-gray-900/30 backdrop-blur-sm">
-          {/* Custom Tabs */}
-          <div className="p-2 border-b border-gray-800/60 bg-gray-900/50">
-            <div className="flex bg-gray-800/50 rounded-lg p-1">
-              {[
-                { id: 'participants', icon: Users, label: 'People' },
-                { id: 'chat', icon: MessageSquare, label: 'Chat' },
-                { id: 'testcase', icon: Hash, label: 'Console' }, // Ensure Terminal imported or use another icon
-                { id: 'result', icon: Trophy, label: 'Result' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveRightTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center py-1.5 rounded-md transition-all ${activeRightTab === tab.id
-                    ? 'bg-blue-600/10 text-blue-400 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-300'
-                    }`}
-                  title={tab.label}
-                >
-                  <tab.icon className="w-4 h-4" />
-                </button>
-              ))}
+        <div className="w-80 border-l border-base-300 flex flex-col">
+          {/* Tabs */}
+          <div className="tabs tabs-boxed bg-base-200 p-2 grid grid-cols-4 gap-1">
+            <button
+              className={`tab tab-sm ${activeRightTab === 'participants' ? 'tab-active' : ''}`}
+              onClick={() => setActiveRightTab('participants')}
+            >
+              <Users className="w-4 h-4" />
+            </button>
+            <button
+              className={`tab tab-sm ${activeRightTab === 'chat' ? 'tab-active' : ''}`}
+              onClick={() => setActiveRightTab('chat')}
+            >
+              <MessageSquare className="w-4 h-4" />
+            </button>
+            <button
+              className={`tab tab-sm ${activeRightTab === 'testcase' ? 'tab-active' : ''}`}
+              onClick={() => setActiveRightTab('testcase')}
+            >
+              Console
+            </button>
+            <button
+              className={`tab tab-sm ${activeRightTab === 'result' ? 'tab-active' : ''}`}
+              onClick={() => setActiveRightTab('result')}
+            >
+              Result
+            </button>
+          </div>
+
+          {/* Participants Tab */}
+          {activeRightTab === 'participants' && (
+            <div className="flex-1 overflow-y-auto p-4">
+              <h3 className="font-semibold mb-4">Participants ({participants.length})</h3>
+              <div className="space-y-2">
+                {participants.map((participant, index) => (
+                  <motion.div
+                    key={participant.userId?._id || index}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
+                  >
+                    {participant.userId?.profilePicture ? (
+                      <img
+                        src={participant.userId.profilePicture}
+                        alt={participant.userId.firstName}
+                        className="w-10 h-10 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                        {participant.userId?.firstName?.[0] || 'U'}
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <p className="font-semibold">
+                        {participant.userId?.firstName} {participant.userId?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {participant.isActive ? (
+                          <span className="text-green-500">● Online</span>
+                        ) : (
+                          <span className="text-gray-500">○ Offline</span>
+                        )}
+                      </p>
+                    </div>
+                    {currentRoom.host._id === participant.userId?._id && (
+                      <Crown className="w-5 h-5 text-warning" />
+                    )}
+                  </motion.div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Tab Content Area */}
-          <div className="flex-1 overflow-hidden relative">
-
-            {/* Participants Tab */}
-            {activeRightTab === 'participants' && (
-              <div className="absolute inset-0 overflow-y-auto p-4 custom-scrollbar">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-300">Participants</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-gray-800 text-xs text-gray-500">{participants.length}</span>
-                </div>
-                <div className="space-y-2">
-                  {participants.map((participant, index) => (
-                    <motion.div
-                      key={participant.userId?._id || index}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-3 p-2.5 bg-gray-800/30 border border-gray-700/30 rounded-lg hover:border-gray-600/50 transition-colors"
-                    >
-                      <div className="relative">
-                        {participant.userId?.profilePicture ? (
-                          <img
-                            src={participant.userId.profilePicture}
-                            alt={participant.userId.firstName}
-                            className="w-9 h-9 rounded-full object-cover border border-gray-700"
-                          />
-                        ) : (
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold border border-white/10">
-                            {participant.userId?.firstName?.[0] || 'U'}
-                          </div>
-                        )}
-                        <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#0F1623] ${participant.isActive ? 'bg-green-500' : 'bg-gray-500'}`} />
+          {/* Chat Tab */}
+          {activeRightTab === 'chat' && (
+            <div className="flex-1 flex flex-col">
+              <h3 className="font-semibold p-4 pb-2">Team Chat</h3>
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-4 pt-2 space-y-3">
+                {chatMessages.map((msg, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`${
+                      msg.type === 'system'
+                        ? 'text-center text-sm text-gray-500'
+                        : 'flex gap-3'
+                    }`}
+                  >
+                    {msg.type !== 'system' && (
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">
+                        {msg.user?.firstName?.[0] || 'U'}
                       </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="font-medium text-sm text-gray-200 truncate">
-                            {participant.userId?.firstName} {participant.userId?.lastName}
-                          </p>
-                          {currentRoom.host._id === participant.userId?._id && (
-                            <Crown className="w-3 h-3 text-yellow-500" />
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-500 truncate">{participant.userId?.emailId}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Chat Tab */}
-            {activeRightTab === 'chat' && (
-              <div className="absolute inset-0 flex flex-col bg-gray-900/20">
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                  {chatMessages.length === 0 && (
-                    <div className="text-center py-10 opacity-30">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-2" />
-                      <p className="text-sm">No messages yet</p>
-                    </div>
-                  )}
-                  {chatMessages.map((msg, index) => {
-                    const isMe = msg.user?._id === user?._id; // Assuming user obj has _id
-                    return (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex flex-col ${msg.type === 'system' ? 'items-center' : 'items-start'}`}
-                      >
-                        {msg.type === 'system' ? (
-                          <span className="text-[10px] text-gray-500 bg-gray-800/50 px-2 py-0.5 rounded-full">
-                            {msg.message}
-                          </span>
-                        ) : (
-                          <div className="flex gap-2 w-full">
-                            <div className="w-7 h-7 rounded-full bg-gray-800 flex-shrink-0 overflow-hidden mt-1">
-                              {msg.user?.profilePicture ? (
-                                <img src={msg.user.profilePicture} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-gray-500 bg-gray-800">
-                                  {msg.username?.[0]}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-baseline gap-2 mb-0.5">
-                                <span className="text-xs font-bold text-gray-300">{msg.user?.firstName || msg.username?.split(' ')[0]}</span>
-                                <span className="text-[10px] text-gray-600">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                              </div>
-                              <div className="bg-gray-800/60 border border-gray-700/50 rounded-r-xl rounded-bl-xl p-2.5 text-sm text-gray-300 shadow-sm leading-relaxed">
-                                {msg.message}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                  <div ref={chatEndRef} />
-                </div>
-
-                <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-800/60 bg-gray-900/80 backdrop-blur-sm">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Type your message..."
-                      className="w-full bg-gray-800 text-gray-200 text-sm rounded-xl pl-4 pr-10 py-2.5 border border-gray-700/50 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 outline-none transition-all placeholder:text-gray-600"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                    />
-                    <button
-                      type="submit"
-                      disabled={!chatInput.trim()}
-                      className="absolute right-1.5 top-1.5 p-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Send className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Test Case Tab */}
-            {activeRightTab === 'testcase' && (
-              <div className="absolute inset-0 overflow-y-auto p-4 custom-scrollbar">
-                <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-                  <Hash className="w-4 h-4 text-purple-400" />
-                  Execution Console
-                </h3>
-
-                {runResult ? (
-                  <div className={`rounded-xl border ${runResult.success ? 'bg-green-900/10 border-green-500/20' : 'bg-red-900/10 border-red-500/20'} p-4 overflow-hidden`}>
-                    <div className="flex items-center gap-2 mb-3">
-                      {runResult.success ? <Check className="w-5 h-5 text-green-400" /> : <XCircle className="w-5 h-5 text-red-400" />}
-                      <h4 className={`font-bold ${runResult.success ? 'text-green-400' : 'text-red-400'}`}>
-                        {runResult.success ? 'Execution Successful' : 'Runtime Error'}
-                      </h4>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-900/50 rounded-lg p-2 text-xs border border-gray-800">
-                          <span className="text-gray-500 block mb-1">Time</span>
-                          <span className="text-gray-200 font-mono">{runResult.runtime || '0'}s</span>
-                        </div>
-                        <div className="bg-gray-900/50 rounded-lg p-2 text-xs border border-gray-800">
-                          <span className="text-gray-500 block mb-1">Memory</span>
-                          <span className="text-gray-200 font-mono">{runResult.memory || '0'}KB</span>
-                        </div>
-                      </div>
-
-                      {runResult.error && (
-                        <div className="bg-red-950/30 border border-red-500/20 rounded-lg p-3 text-xs font-mono text-red-300 break-words whitespace-pre-wrap">
-                          {runResult.error}
-                        </div>
+                    )}
+                    <div className="flex-1">
+                      {msg.type !== 'system' && (
+                        <p className="text-sm font-semibold">{msg.user?.firstName}</p>
                       )}
-
-                      {runResult.testCases?.map((tc, i) => (
-                        <div key={i} className="space-y-2 text-xs bg-gray-900/40 rounded-lg p-3 border border-gray-800">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-semibold text-gray-400">Test Case {i + 1}</span>
-                            {tc.status_id ? (
-                              <span className={`${tc.status_id === 3 ? 'text-green-400' : 'text-red-400'}`}>
-                                {tc.status_id === 3 ? 'Passed' : 'Failed'}
-                              </span>
-                            ) : (
-                              // If running test code (non-submission), check manual match or explicit pass
-                              <span className="text-gray-500">Completed</span>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono">
-                            <span className="text-gray-600">Input:</span>
-                            <span className="text-gray-300">{tc.stdin}</span>
-                            <span className="text-gray-600">Expected:</span>
-                            <span className="text-gray-300">{tc.expected_output}</span>
-                            <span className="text-gray-600">Output:</span>
-                            <span className={`${(tc.stdout || "").trim() === (tc.expected_output || "").trim() ? 'text-green-400' : 'text-yellow-400'}`}>
-                              {tc.stdout}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                      <p className={msg.type === 'system' ? 'italic' : 'text-sm'}>
+                        {msg.message}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(msg.timestamp).toLocaleTimeString()}
+                      </p>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center text-gray-600 border border-dashed border-gray-800 rounded-xl bg-gray-900/20">
-                    <Play className="w-10 h-10 mb-3 opacity-20" />
-                    <p className="text-sm">Run your code to see output here</p>
-                  </div>
-                )}
+                  </motion.div>
+                ))}
+                <div ref={chatEndRef} />
               </div>
-            )}
 
-            {/* Result Tab */}
-            {activeRightTab === 'result' && (
-              <div className="absolute inset-0 overflow-y-auto p-4 custom-scrollbar">
-                <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-yellow-400" />
-                  Submission Status
-                </h3>
+              {/* Chat Input */}
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-base-300">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Type a message..."
+                    className="input input-bordered input-sm flex-1"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                  />
+                  <button type="submit" className="btn btn-primary btn-sm">
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
-                {submitResult ? (
-                  <div className={`rounded-xl border ${submitResult.accepted ? 'bg-green-900/10 border-green-500/20' : 'bg-red-900/10 border-red-500/20'} p-5 relative overflow-hidden`}>
-                    {/* Background decoration */}
-                    <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-[60px] ${submitResult.accepted ? 'bg-green-500/20' : 'bg-red-500/20'} pointer-events-none -mr-16 -mt-16`} />
+          {/* Test Results Tab */}
+          {activeRightTab === 'testcase' && (
+            <div className="flex-1 p-4 overflow-y-auto">
+              <h3 className="font-semibold mb-4">Test Results</h3>
+              {runResult ? (
+                <div className={`alert ${runResult.success ? 'alert-success' : 'alert-error'} mb-4`}>
+                  <div>
+                    {runResult.success ? (
+                      <div>
+                        <h4 className="font-bold">✅ All test cases passed!</h4>
+                        <p className="text-sm mt-2">Runtime: {runResult.runtime + " sec"}</p>
+                        <p className="text-sm">Memory: {runResult.memory + " KB"}</p>
 
-                    <div className="relative z-10">
-                      <div className="text-center mb-6">
-                        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-3 ${submitResult.accepted ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                          {submitResult.accepted ? <Check className="w-8 h-8" /> : <XCircle className="w-8 h-8" />}
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-100">{submitResult.accepted ? 'Accepted!' : 'Wrong Answer'}</h2>
-                        {submitResult.error && <p className="text-red-400 text-sm mt-1">{submitResult.error}</p>}
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2 text-center">
-                        <div className="bg-gray-900/60 rounded-lg p-2 border border-gray-700/50">
-                          <span className="block text-[10px] text-gray-500 uppercase tracking-widest">Test Cases</span>
-                          <span className="text-lg font-bold text-gray-200">{submitResult.passedTestCases}/{submitResult.totalTestCases}</span>
-                        </div>
-                        <div className="bg-gray-900/60 rounded-lg p-2 border border-gray-700/50">
-                          <span className="block text-[10px] text-gray-500 uppercase tracking-widest">Runtime</span>
-                          <span className="text-lg font-bold text-gray-200">{submitResult.runtime || 0}s</span>
-                        </div>
-                        <div className="bg-gray-900/60 rounded-lg p-2 border border-gray-700/50">
-                          <span className="block text-[10px] text-gray-500 uppercase tracking-widest">Memory</span>
-                          <span className="text-lg font-bold text-gray-200">{submitResult.memory || 0}KB</span>
+                        <div className="mt-4 space-y-2">
+                          {runResult.testCases?.map((tc, i) => (
+                            <div key={i} className="bg-base-100 p-3 rounded text-xs">
+                              <div className="font-mono">
+                                <div><strong>Input:</strong> {tc.stdin}</div>
+                                <div><strong>Expected:</strong> {tc.expected_output}</div>
+                                <div><strong>Output:</strong> {tc.stdout}</div>
+                                <div className={'text-green-600'}>
+                                  {'✓ Passed'}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div>
+                        <h4 className="font-bold">❌ Error</h4>
+                        <p className="text-sm mt-2">{runResult.error}</p>
+                        <div className="mt-4 space-y-2">
+                          {runResult.testCases?.map((tc, i) => (
+                            <div key={i} className="bg-base-100 p-3 rounded text-xs">
+                              <div className="font-mono">
+                                <div><strong>Input:</strong> {tc.stdin}</div>
+                                <div><strong>Expected:</strong> {tc.expected_output}</div>
+                                <div><strong>Output:</strong> {tc.stdout}</div>
+                                <div className={tc.status_id == 3 ? 'text-green-600' : 'text-red-600'}>
+                                  {tc.status_id == 3 ? '✓ Passed' : '✗ Failed'}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center text-gray-600 border border-dashed border-gray-800 rounded-xl bg-gray-900/20">
-                    <Send className="w-10 h-10 mb-3 opacity-20" />
-                    <p className="text-sm">Submit your solution to get results</p>
+                </div>
+              ) : (
+                <div className="text-gray-500">
+                  Click "Run" to test your code with the example test cases.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Submission Results Tab */}
+          {activeRightTab === 'result' && (
+            <div className="flex-1 p-4 overflow-y-auto">
+              <h3 className="font-semibold mb-4">Submission Result</h3>
+              {submitResult ? (
+                <div className={`alert ${submitResult.accepted ? 'alert-success' : 'alert-error'}`}>
+                  <div>
+                    {submitResult.accepted ? (
+                      <div>
+                        <h4 className="font-bold text-lg">🎉 Accepted</h4>
+                        <div className="mt-4 space-y-2">
+                          <p>Test Cases Passed: {submitResult.passedTestCases}/{submitResult.totalTestCases}</p>
+                          <p>Runtime: {submitResult.runtime + " sec"}</p>
+                          <p>Memory: {submitResult.memory + "KB"} </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <h4 className="font-bold text-lg">❌ {submitResult.error}</h4>
+                        <div className="mt-4 space-y-2">
+                          <p>Test Cases Passed: {submitResult.passedTestCases || 0}/{submitResult.totalTestCases || 0}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
-          </div>
+                </div>
+              ) : (
+                <div className="text-gray-500">
+                  Click "Submit" to submit your solution for evaluation.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 export default TeamCodingPage;
-

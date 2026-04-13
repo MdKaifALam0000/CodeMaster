@@ -17,6 +17,7 @@ import AdminUpload from "./components/AdminUpload";
 import TeamCodingLobby from "./pages/TeamCodingLobby";
 import TeamCodingPage from "./pages/TeamCodingPage";
 import Leaderboard from "./pages/Leaderboard";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
 
@@ -53,7 +54,7 @@ function App() {
         <Route path="/admin/update" element={isAuthenticated && user?.role === 'admin' ? <AdminUpdate /> : <Navigate to="/" />} />
         <Route path="/team-coding" element={isAuthenticated ? <TeamCodingLobby /> : <Navigate to="/login" />} />
         <Route path="/team-coding/room/:roomId" element={<TeamCodingPage />} />
-
+        <Route path="/forgot-password" element={isAuthenticated ? <Navigate to="/home" /> : <ForgotPassword />} />
       </Routes>
     </>
   )

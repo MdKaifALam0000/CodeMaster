@@ -21,9 +21,14 @@ const teamCodingRouter = require('./routes/teamCoding');
 //the browser protect the frontend to get connected with backedn because both are running at different port so to connect them we want a verfication that's why we use cors 
 //import cors -> and read the cors documentation
 // CORS configuration
+// Strip trailing slash from FRONTEND_URL — browsers send origins WITHOUT trailing slash
+const productionOrigin = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.replace(/\/$/, '')
+    : null;
+
 const corsOptions = {
     origin: process.env.NODE_ENV === 'production'
-        ? (process.env.FRONTEND_URL || 'https://codemaster-frontend.onrender.com')
+        ? productionOrigin
         : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -32,7 +37,8 @@ const corsOptions = {
 
 console.log('🔒 CORS Options:', {
     NODE_ENV: process.env.NODE_ENV,
-    origins: corsOptions.origin
+    FRONTEND_URL_raw: process.env.FRONTEND_URL,
+    origin_used: corsOptions.origin
 });
 
 app.use(cors(corsOptions));
@@ -53,9 +59,9 @@ app.use(cookieParser());
 // Routes
 app.use('/user', authrouter);
 app.use('/problem', problemRouter);
-app.use('/submission', submitRouter);
-app.use('/ai', aiRouter);
-app.use('/video', videoRouter);
+app.use('/submission' , submitRouter);
+app.use('/ai' , aiRouter);
+app.use('/video' , videoRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/team', teamCodingRouter);
 
@@ -70,12 +76,12 @@ const initializeConnection = async () => {
         require('./socket/teamCodingSocket')(io);
 
         httpServer.listen(process.env.PORT || 3000, () => {
-            console.log(`🚀 Server is running on port ${process.env.PORT || 3000}`);
-            console.log(`🔌 Socket.IO server is ready at http://localhost:${process.env.PORT || 3000}`);
-            console.log(`✅ Backend URL: http://localhost:${process.env.PORT || 3000}`);
+            console.log(` Server is running on port ${process.env.PORT || 3000}`);
+            console.log(` Socket.IO server is ready at http://localhost:${process.env.PORT || 3000}`);
+            console.log(` Backend URL: http://localhost:${process.env.PORT || 3000}`);
         });
     } catch (err) {
-        console.error('❌ Error connecting to the database or Redis:', err);
+        console.error(' Error connecting to the database or Redis:', err);
         process.exit(1);
     }
 };

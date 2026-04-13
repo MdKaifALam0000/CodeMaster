@@ -1,18 +1,15 @@
-const path = require('path');
-const fs = require('fs');
 
 const otpTemplate = (otp) => {
 	let attachments = [];
 
-	// Path to local logo file - adjusted for relative path from Backend/src/mail/template
-	// Target: CodeMaster/frontend/src/assets/websitelogo.avif
-	const logoPath = path.join(__dirname, '../../../../frontend/src/assets/websitelogo.avif');
+	// Use a hosted logo URL instead of local file path
+	// Local path breaks in production where frontend & backend are separate deployments
+	const logoUrl = process.env.LOGO_URL || 'https://res.cloudinary.com/dlxnitazd/image/upload/v1/codemaster-profiles/logo';
 
-	let htmlContent = `
+	const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
             <div style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 30px; text-align: center;">
-                 <img src="cid:logo" alt="The Turing Forge" style="height: 60px; margin-bottom: 10px;" />
-                 <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold;">Verify Your Email</h1>
+                 <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold;">CodeMaster – Verify Your Email</h1>
             </div>
             
             <div style="padding: 40px; background-color: #ffffff;">
@@ -20,7 +17,7 @@ const otpTemplate = (otp) => {
                     Hello,
                 </p>
                 <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
-                    Thank you for joining <strong>The Turing Forge</strong>. To complete your registration, please use the One-Time Password (OTP) below to verify your email address.
+                    Thank you for joining <strong>CodeMaster</strong>. To complete your registration, please use the One-Time Password (OTP) below to verify your email address.
                 </p>
                 
                 <div style="background-color: #f3f4f6; border-radius: 12px; padding: 20px; text-align: center; margin: 30px 0;">
@@ -30,7 +27,7 @@ const otpTemplate = (otp) => {
                 </div>
                 
                 <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin-top: 30px;">
-                    This OTP is valid for <strong>10 minutes</strong>. Do not share this code with anyone.
+                    This OTP is valid for <strong>5 minutes</strong>. Do not share this code with anyone.
                 </p>
                 <p style="color: #9ca3af; font-size: 14px; margin-top: 20px;">
                     If you did not request this verification, please ignore this email.
@@ -39,24 +36,11 @@ const otpTemplate = (otp) => {
             
             <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
                 <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                    &copy; 2025 The Turing Forge. All rights reserved.
+                    &copy; 2025 CodeMaster. All rights reserved.
                 </p>
             </div>
         </div>
     `;
-
-	// Check if logo exists
-	if (fs.existsSync(logoPath)) {
-		attachments.push({
-			filename: 'websitelogo.avif',
-			path: logoPath,
-			cid: 'logo' // Data URI for inline image
-		});
-	} else {
-		console.warn('⚠️ Logo file not found at:', logoPath);
-		// Remove the image tag if logo is missing to avoid broken image icon
-		htmlContent = htmlContent.replace(/<img src="cid:logo" [^>]*>/, '');
-	}
 
 	return {
 		html: htmlContent,
