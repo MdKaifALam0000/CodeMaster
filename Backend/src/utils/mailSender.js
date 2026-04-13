@@ -1,40 +1,32 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
 const mailSender = async (email, title, body, attachments = []) => {
-    // Validation
-    if (!process.env.RESEND_API_KEY) {
-        console.error("❌ Missing RESEND_API_KEY environment variable");
-        throw new Error("Server Email Configuration is missing. RESEND_API_KEY not set.");
-    }
-
-    const resend = new Resend(process.env.RESEND_API_KEY);
-
-    // FROM address: use your verified domain on Resend, or fallback to onboarding for dev
-    const fromAddress = process.env.MAIL_FROM || 'onboarding@resend.dev';
-
-    console.log("📧 Attempting to send email via Resend:", {
-        to: email,
-        subject: title,
-        from: fromAddress
-    });
-
     try {
-        const { data, error } = await resend.emails.send({
-            from: `CodeMaster <${fromAddress}>`,
-            to: [email],
-            subject: title,
-            html: body,
+        // Create a Transporter to send emails
+        let transporter = nodemailer.createTransport({
+            host: process.env.MAIL_HOST, // e.g., smtp.gmail.com
+            auth: {
+                user: process.env.MAIL_USER, // e.g., your gmail
+                pass: process.env.MAIL_PASS, // e.g., your gmail App Password
+            }
         });
 
-        if (error) {
-            console.error("Resend API Error:", error);
-            throw new Error(error.message || "Failed to send email via Resend");
-        }
+        console.log("📧 Attempting to send email via NodeMailer to:", email);
 
-        console.log("✅ Email sent successfully via Resend. ID:", data.id);
-        return data;
+        // Send emails to users
+        let info = await transporter.sendMail({
+            from: `"CodeMaster" <${process.env.MAIL_USER}>`,
+            to: `${email}`,
+            subject: `${title}`,
+            html: `${body}`,
+            // We pass attachments below (though we removed them from the template, we'll keep the param just in case)
+            attachments: attachments 
+        });
+
+        console.log("✅ Email sent successfully! Message ID:", info.messageId);
+        return info;
     } catch (error) {
-        console.error("Mail Sender Error:", error.message);
+        console.error("❌ Mail Sender Error:", error.message);
         throw error;
     }
 };
