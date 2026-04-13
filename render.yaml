@@ -26,6 +26,12 @@ services:
         sync: false
       - key: CLOUD_NAME
         sync: false
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: RAPIDAPI_KEY
