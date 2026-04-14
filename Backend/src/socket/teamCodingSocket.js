@@ -4,11 +4,11 @@ const jwt = require('jsonwebtoken');
 // ================== SOCKET.IO TEAM CODING HANDLER ==================
 
 module.exports = (io) => {
-    console.log('🔌 Socket.IO handlers initialized');
+    console.log('Socket.IO handlers initialized');
     
     // Global connection error handler
     io.on('connection_error', (error) => {
-        console.error('❌ Global Socket.IO connection error:', {
+        console.error('Global Socket.IO connection error:', {
             message: error.message,
             code: error.code,
             type: error.type
@@ -17,16 +17,25 @@ module.exports = (io) => {
     
     // Middleware for Socket.IO authentication
     io.use(async (socket, next) => {
-        console.log('🔐 Socket.IO authentication middleware called', {
+        console.log('Socket.IO authentication middleware called', {
             socketId: socket.id,
             hasAuth: !!socket.handshake.auth
         });
         
         try {
-            const token = socket.handshake.auth.token;
+            // Extract token from frontend cookies (Since we use withCredentials: true on frontend)
+            let token = socket.handshake.auth?.token;
             
+            if (!token && socket.handshake.headers.cookie) {
+                const cookieString = socket.handshake.headers.cookie;
+                const tokenMatch = cookieString.match(/token=([^;]+)/);
+                if (tokenMatch) {
+                    token = tokenMatch[1];
+                }
+            }
+
             if (!token) {
-                console.error('❌ No token provided in Socket.IO handshake for socket:', socket.id);
+                console.error(' No token provided in Socket.IO handshake for socket:', socket.id);
                 return next(new Error('Authentication token required'));
             }
 
@@ -34,13 +43,13 @@ module.exports = (io) => {
                 const payload = jwt.verify(token, process.env.JWT_SECRET);
                 socket.userId = payload._id;
                 socket.user = payload;
-                console.log(`✅ Socket authenticated for user: ${socket.userId}`, {
+                console.log(` Socket authenticated for user: ${socket.userId}`, {
                     socketId: socket.id,
                     email: payload.email
                 });
                 next();
             } catch (jwtError) {
-                console.error('❌ JWT verification failed:', {
+                console.error('JWT verification failed:', {
                     message: jwtError.message,
                     socketId: socket.id,
                     code: jwtError.code
@@ -48,7 +57,7 @@ module.exports = (io) => {
                 return next(new Error('Authentication failed: ' + jwtError.message));
             }
         } catch (err) {
-            console.error('❌ Socket authentication error:', {
+            console.error(' Socket authentication error:', {
                 message: err.message,
                 socketId: socket.id
             });
@@ -57,7 +66,7 @@ module.exports = (io) => {
     });
 
     io.on('connection', (socket) => {
-        console.log(`👤 User connected: ${socket.userId}`, {
+        console.log(` User connected: ${socket.userId}`, {
             socketId: socket.id,
             connectedClients: io.engine.clientsCount
         });
@@ -102,7 +111,7 @@ module.exports = (io) => {
                     chatHistory: room.chatHistory.slice(-50) // Last 50 messages
                 });
 
-                console.log(`✅ User ${socket.userId} joined room ${roomId}`);
+                console.log(`User ${socket.userId} joined room ${roomId}`);
 
             } catch (err) {
                 console.error('Error joining room:', err);

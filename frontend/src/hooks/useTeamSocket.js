@@ -12,7 +12,7 @@ import {
   removeParticipant,
   setTestResults
 } from '../teamCodingSlice';
-import Cookies from 'js-cookie';
+// js-cookie removed because httpOnly cookies cannot be read by JS
 
 const SOCKET_URL = import.meta.env.PROD 
     ? (import.meta.env.VITE_API_URL || 'https://codemaster-1.onrender.com')
@@ -32,18 +32,11 @@ export const useTeamSocket = () => {
       return;
     }
 
-    // Initialize socket connection
-    const token = Cookies.get('token');
-    
-    if (!token) {
-      console.log('❌ No authentication token found - user not logged in');
-      dispatch(setConnected(false));
-      return;
-    }
+    // We don't check Cookies.get('token') because the backend uses httpOnly cookies for security,
+    // which prevents JavaScript from reading them. Instead, we use withCredentials: true below 
+    // to force the browser to automatically include the secure cookie in the socket handshake.
 
-    console.log('🔐 Attempting Socket.IO connection with token:', {
-      tokenExists: !!token,
-      tokenLength: token?.length,
+    console.log('🔐 Attempting Socket.IO connection:', {
       url: SOCKET_URL,
       userId: user?._id
     });
@@ -55,7 +48,7 @@ export const useTeamSocket = () => {
     }
 
     socketRef.current = io(SOCKET_URL, {
-      auth: { token },
+      withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
