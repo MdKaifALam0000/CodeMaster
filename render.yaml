@@ -3,11 +3,17 @@ services:
     name: codemaster-backend
     env: node
     plan: starter
+    healthCheckPath: /health
     buildCommand: cd Backend && npm install
     startCommand: cd Backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: RENDER_EXTERNAL_URL
+        fromService:
+          type: web
+          name: codemaster-backend
+          property: host
       - key: MONGO_URI
         sync: false
       - key: JWT_SECRET

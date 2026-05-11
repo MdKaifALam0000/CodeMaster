@@ -86,4 +86,29 @@ const initializeConnection = async () => {
     }
 };
 
+// Health check endpoint — Render uses this to confirm the service is up
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 initializeConnection();
+
+// Keep-alive self-ping — prevents Render free/starter tier from spinning down
+// Render spins down idle services after ~15 min, causing 30-90s cold starts
+if (process.env.NODE_ENV === 'production') {
+    const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
+
+    setInterval(async () => {
+        try {
+            const axios = require('axios');
+            await axios.get(`${SELF_URL}/health`, { timeout: 10000 });
+            console.log(`♻️  Keep-alive ping sent to ${SELF_URL}/health`);
+        } catch (err) {
+            console.warn('⚠️  Keep-alive ping failed:', err.message);
+        }
+    }, PING_INTERVAL_MS);
+
+    console.log(`♻️  Keep-alive self-ping active (every 14 min) → ${SELF_URL}/health`);
+}
+

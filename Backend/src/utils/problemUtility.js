@@ -83,10 +83,14 @@ const submitToken = async (resultToken) => {
         }
     }
 
-    while (true) {
+    const MAX_ATTEMPTS = 30; // 30 seconds max wait
+    let attempts = 0;
+
+    while (attempts < MAX_ATTEMPTS) {
+        attempts++;
         const result = await fetchData();
 
-        const isResultObtained = await result.submissions.every((r) => r.status_id > 2);
+        const isResultObtained = result.submissions.every((r) => r.status_id > 2);
 
         if (isResultObtained) {
             // Decode base64 results
@@ -103,6 +107,8 @@ const submitToken = async (resultToken) => {
 
         await Waiting(1000);
     }
+
+    throw new Error('Judge0 timed out: code evaluation took too long (>30s). Please try again.');
 
 }
 
