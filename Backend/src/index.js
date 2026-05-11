@@ -66,23 +66,23 @@ app.use('/dashboard', dashboardRouter);
 app.use('/team', teamCodingRouter);
 
 
-// Initialize DB & Redis, then start server
+// Initialize Socket.IO handlers
+require('./socket/teamCodingSocket')(io);
+
+// Start server immediately to bind port quickly during cold starts on Vercel/Render
+httpServer.listen(process.env.PORT || 3000, () => {
+    console.log(` Server is running on port ${process.env.PORT || 3000}`);
+    console.log(` Socket.IO server is ready at http://localhost:${process.env.PORT || 3000}`);
+    console.log(` Backend URL: http://localhost:${process.env.PORT || 3000}`);
+});
+
+// Initialize DB & Redis asynchronously
 const initializeConnection = async () => {
     try {
         await Promise.all([main(), redisClient.connect()]);
         console.log("✅ MongoDB and Redis connected successfully!");
-
-        // Initialize Socket.IO handlers
-        require('./socket/teamCodingSocket')(io);
-
-        httpServer.listen(process.env.PORT || 3000, () => {
-            console.log(` Server is running on port ${process.env.PORT || 3000}`);
-            console.log(` Socket.IO server is ready at http://localhost:${process.env.PORT || 3000}`);
-            console.log(` Backend URL: http://localhost:${process.env.PORT || 3000}`);
-        });
     } catch (err) {
         console.error(' Error connecting to the database or Redis:', err);
-        process.exit(1);
     }
 };
 

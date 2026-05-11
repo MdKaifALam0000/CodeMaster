@@ -105,28 +105,28 @@ const ProgressTracker = ({ progress }) => {
 
       {/* Summary Stats */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 shadow-lg">
+        <div className="bg-[#111]/80 border border-white/5 rounded-xl p-6 shadow-[0_0_15px_rgba(255,69,0,0.2)]">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="w-8 h-8 text-blue-200" />
+            <TrendingUp className="w-8 h-8 text-[#ff4500]" />
           </div>
-          <p className="text-white text-3xl font-bold">{progress.problemsSolved}</p>
-          <p className="text-blue-200 text-sm mt-1">Problems Solved</p>
+          <p className="text-white text-3xl font-black">{progress.problemsSolved}</p>
+          <p className="text-gray-400 text-sm mt-1 font-bold tracking-widest uppercase text-xs">Problems Solved</p>
         </div>
 
-        <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-6 shadow-lg">
+        <div className="bg-[#111]/80 border border-white/5 rounded-xl p-6 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
           <div className="flex items-center justify-between mb-2">
-            <CheckCircle className="w-8 h-8 text-green-200" />
+            <CheckCircle className="w-8 h-8 text-emerald-500" />
           </div>
-          <p className="text-white text-3xl font-bold">{progress.acceptedSubmissions}</p>
-          <p className="text-green-200 text-sm mt-1">Accepted Submissions</p>
+          <p className="text-white text-3xl font-black">{progress.acceptedSubmissions}</p>
+          <p className="text-gray-400 text-sm mt-1 font-bold tracking-widest uppercase text-xs">Accepted Submissions</p>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-6 shadow-lg">
+        <div className="bg-[#111]/80 border border-white/5 rounded-xl p-6 shadow-[0_0_15px_rgba(255,0,60,0.2)]">
           <div className="flex items-center justify-between mb-2">
-            <Code className="w-8 h-8 text-purple-200" />
+            <Code className="w-8 h-8 text-[#ff003c]" />
           </div>
-          <p className="text-white text-3xl font-bold">{progress.totalSubmissions}</p>
-          <p className="text-purple-200 text-sm mt-1">Total Submissions</p>
+          <p className="text-white text-3xl font-black">{progress.totalSubmissions}</p>
+          <p className="text-gray-400 text-sm mt-1 font-bold tracking-widest uppercase text-xs">Total Submissions</p>
         </div>
       </motion.div>
 
@@ -228,7 +228,7 @@ const ProgressTracker = ({ progress }) => {
             <Line 
               type="monotone" 
               dataKey="submissions" 
-              stroke="#8b5cf6" 
+              stroke="#ff4500" 
               strokeWidth={2}
               name="Submissions"
             />
@@ -271,7 +271,7 @@ const ProgressTracker = ({ progress }) => {
                 >
                   <td className="py-3 px-4 text-white font-medium">{submission.problemTitle}</td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-1 rounded bg-blue-600/20 text-blue-400 text-sm">
+                    <span className="px-2 py-1 rounded bg-[#ff4500]/20 text-[#ff4500] text-sm font-bold tracking-wider">
                       {submission.language}
                     </span>
                   </td>

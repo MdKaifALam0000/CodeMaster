@@ -3,78 +3,29 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link, useLocation } from 'react-router';
 import { loginUser } from "../authSlice";
-import { motion } from 'framer-motion';
-import { FiMail, FiLock, FiArrowRight, FiUser, FiEye, FiEyeOff } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiMail, FiLock, FiArrowRight, FiEye, FiEyeOff, FiCpu, FiHexagon } from 'react-icons/fi';
+import ImageSequenceCanvas from '../components/ImageSequenceCanvas';
 
-// --- Validation Schemas ---
 const loginSchema = z.object({
-  emailId: z.string().min(1, "Username/Email is required"),
+  emailId: z.string().min(1, "Email is required"),
   password: z.string().min(8, "Password must be at least 8 characters")
 });
 
-const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character")
-});
-
-function Login() {
+export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, loading } = useSelector((state) => state.auth);
-
-  // --- State ---
-  // false = Login Mode (Overlay on Right, Form on Left)
-  // true = Sign Up Mode (Overlay on Left, Form on Right)
-  const [isSignUpMode, setIsSignUpMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [bubbles, setBubbles] = useState([]);
 
-  // --- Forms Setup ---
-  const {
-    register: registerLogin,
-    handleSubmit: handleSubmitLogin,
-    formState: { errors: errorsLogin },
-  } = useForm({ resolver: zodResolver(loginSchema) });
+  const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(loginSchema) });
 
-  const {
-    register: registerSignUp,
-    handleSubmit: handleSubmitSignUp,
-    formState: { errors: errorsSignUp },
-  } = useForm({ resolver: zodResolver(registerSchema) });
-
-  // --- Redirect ---
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
+    if (isAuthenticated) navigate('/home');
   }, [isAuthenticated, navigate]);
 
-  // --- Bubble Animation ---
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      const newBubble = {
-        id: Date.now(),
-        x: e.clientX,
-        y: e.clientY,
-        size: Math.random() * 40 + 20,
-        color: `hsla(${Math.random() * 60 + 200}, 80%, 60%, 0.4)`
-      };
-      setBubbles((prev) => [...prev.slice(-8), newBubble]);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  // --- Handlers ---
   const onLoginSubmit = async (data) => {
     try {
       await dispatch(loginUser(data)).unwrap();
@@ -83,269 +34,123 @@ function Login() {
     }
   };
 
-  const onRegisterSubmit = (data) => {
-    console.log("Register Data:", data);
-  };
-
-  // --- Toggle Handler ---
-  const handleToggle = () => {
-    setIsSignUpMode(!isSignUpMode);
-  };
+  const inputClasses = "w-full bg-[#111]/80 border border-white/10 py-4 pl-12 pr-4 text-white placeholder-gray-500 rounded-xl outline-none focus:border-[#ff4500] focus:ring-1 focus:ring-[#ff4500] focus:bg-[#ff4500]/5 transition-all duration-300 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]";
+  const iconClasses = "absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-500 group-focus-within:text-[#ff4500] transition-colors duration-300";
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 overflow-hidden relative font-sans">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 overflow-hidden relative font-sans selection:bg-[#ff4500] selection:text-black">
+      
+      {/* 3D Animated Background */}
+      <ImageSequenceCanvas />
+      
+      {/* Holographic Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ff450010_1px,transparent_1px),linear-gradient(to_bottom,#ff450010_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none z-0" />
+      
+      {/* Ambient Lighting */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#ff4500]/20 rounded-full blur-[120px] pointer-events-none z-0 mix-blend-screen" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#ff003c]/10 rounded-full blur-[150px] pointer-events-none z-0 mix-blend-screen" />
 
-      {/* --- Floating bubbles --- */}
-      {bubbles.map((bubble) => (
-        <motion.div
-          key={bubble.id}
-          className="absolute rounded-full pointer-events-none"
-          style={{
-            left: bubble.x,
-            top: bubble.y,
-            width: bubble.size,
-            height: bubble.size,
-            background: bubble.color,
-            filter: 'blur(15px)',
-            translateX: '-50%',
-            translateY: '-50%'
-          }}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.6 }}
-          exit={{ scale: 0, opacity: 0 }}
-          transition={{ duration: 0.5 }}
+      {/* Cyberpunk Glass Panel */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -30, scale: 0.95 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="relative w-full max-w-[480px] bg-[#0a0a0a]/70 backdrop-blur-2xl rounded-3xl shadow-[0_0_50px_rgba(255,69,0,0.1)] border border-white/10 z-10 overflow-hidden"
+      >
+        {/* Animated Neon Border Top */}
+        <motion.div 
+            initial={{ x: '-100%' }}
+            animate={{ x: '100%' }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+            className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#ff4500] to-transparent opacity-70"
         />
-      ))}
 
-      {/* --- MAIN CARD CONTAINER --- */}
-      <div className="relative w-[850px] h-[500px] bg-gray-800/50 backdrop-blur-xl rounded-[20px] shadow-2xl overflow-hidden z-10 border border-gray-700">
-
-        {/* =======================
-            SIGN UP FORM (Visible on RIGHT)
-           ======================= */}
-        <div className={`
-          absolute top-0 right-0 w-[45%] h-full flex flex-col justify-center px-10 z-[1]
-          transition-all duration-700 ease-in-out
-          ${isSignUpMode ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 translate-x-20 pointer-events-none"}
-        `}>
-          <form onSubmit={handleSubmitSignUp(onRegisterSubmit)} className="w-full flex flex-col">
-            <h1 className="text-3xl font-bold text-white mb-6 text-center">Create Account</h1>
-
-            <div className="w-full space-y-4">
-              <div className="relative w-full group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                  <FiUser className="text-gray-400 group-focus-within:text-purple-400 transition-colors" />
+        <div className="p-10 sm:p-12">
+            <div className="flex justify-center mb-8 relative">
+                <div className="absolute inset-0 bg-[#ff4500]/20 blur-2xl rounded-full" />
+                <div className="w-16 h-16 rounded-2xl bg-black border border-[#ff4500]/40 flex items-center justify-center relative z-10 shadow-[0_0_20px_rgba(255,69,0,0.3)]">
+                    <FiCpu className="text-[#ff4500] w-8 h-8 animate-pulse" />
                 </div>
-                <input
-                  {...registerSignUp('username')}
-                  placeholder="Username"
-                  className="w-full bg-gray-700/30 border-b border-gray-600 py-3 pl-10 pr-4 text-white placeholder-gray-500 outline-none focus:border-purple-500 transition-colors"
-                />
-              </div>
-              <div className="relative w-full group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                  <FiMail className="text-gray-400 group-focus-within:text-purple-400 transition-colors" />
-                </div>
-                <input
-                  {...registerSignUp('email')}
-                  placeholder="Email"
-                  className="w-full bg-gray-700/30 border-b border-gray-600 py-3 pl-10 pr-4 text-white placeholder-gray-500 outline-none focus:border-purple-500 transition-colors"
-                />
-              </div>
-              <div className="relative w-full group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                  <FiLock className="text-gray-400 group-focus-within:text-purple-400 transition-colors" />
-                </div>
-                <input
-                  {...registerSignUp('password')}
-                  type="password"
-                  placeholder="Password"
-                  className="w-full bg-gray-700/30 border-b border-gray-600 py-3 pl-10 pr-4 text-white placeholder-gray-500 outline-none focus:border-purple-500 transition-colors"
-                />
-              </div>
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="mt-8 w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-purple-500/30 transition-all flex items-center justify-center gap-2"
-            >
-              Sign Up
-            </motion.button>
-
-            <p className="mt-6 text-xs text-center text-gray-400">
-              Already have an account?
-              {/* This button triggers the slide back to Login */}
-              <button type="button" onClick={() => setIsSignUpMode(false)} className="text-purple-400 cursor-pointer hover:underline font-bold ml-1">Login</button>
+            <h1 className="text-3xl font-black text-white mb-2 text-center tracking-tight">
+                ACCESS <span className="text-[#ff4500]">SYSTEM</span>
+            </h1>
+            <p className="text-gray-400 text-sm mb-10 text-center font-light tracking-wide">
+                Initialize secure connection to CodeMaster
             </p>
-          </form>
-        </div>
 
-        {/* =======================
-            LOGIN FORM (Visible on LEFT)
-           ======================= */}
-        <div className={`
-          absolute top-0 left-0 w-[45%] h-full flex flex-col justify-center px-10 z-[1]
-          transition-all duration-700 ease-in-out
-          ${!isSignUpMode ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 -translate-x-20 pointer-events-none"}
-        `}>
-          <form onSubmit={handleSubmitLogin(onLoginSubmit)} className="w-full flex flex-col">
-            <h1 className="text-3xl font-bold text-white mb-2 text-left">Welcome Back</h1>
-            <p className="text-gray-400 text-sm mb-8">Sign in to your account</p>
+            <form onSubmit={handleSubmit(onLoginSubmit)} className="w-full space-y-6 relative z-10">
+                <div className="relative w-full group">
+                    <div className={iconClasses}>
+                        <FiMail className="w-5 h-5" />
+                    </div>
+                    <input
+                        {...register('emailId')}
+                        placeholder="Neural Link ID (Email)"
+                        className={inputClasses}
+                        autoComplete="off"
+                    />
+                    {errors.emailId && <p className="text-[#ff003c] text-xs mt-2 ml-1">{errors.emailId.message}</p>}
+                </div>
 
-            <div className="w-full space-y-6">
-              <div className="relative w-full group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                  <FiMail className="text-gray-400 group-focus-within:text-purple-400 transition-colors" />
+                <div className="relative w-full group">
+                    <div className={iconClasses}>
+                        <FiLock className="w-5 h-5" />
+                    </div>
+                    <input
+                        {...register('password')}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Security Key (Password)"
+                        className={inputClasses}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-[#ff4500] transition-colors"
+                    >
+                        {showPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
+                    </button>
+                    {errors.password && <p className="text-[#ff003c] text-xs mt-2 ml-1">{errors.password.message}</p>}
                 </div>
-                <input
-                  {...registerLogin('emailId')}
-                  placeholder="Email Address"
-                  className="w-full bg-gray-700/30 border-b border-gray-600 py-3 pl-10 pr-4 text-white placeholder-gray-400 outline-none focus:border-purple-500 transition-colors"
-                />
-              </div>
-              <div className="relative w-full group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                  <FiLock className="text-gray-400 group-focus-within:text-purple-400 transition-colors" />
+
+                <div className="flex items-center justify-between pt-2">
+                    <label className="flex items-center cursor-pointer group">
+                        <div className="relative flex items-center justify-center w-5 h-5 rounded border border-gray-600 bg-black group-hover:border-[#ff4500] transition-colors">
+                            <input type="checkbox" className="opacity-0 absolute w-full h-full cursor-pointer peer" />
+                            <div className="w-2.5 h-2.5 bg-[#ff4500] rounded-sm scale-0 peer-checked:scale-100 transition-transform duration-200" />
+                        </div>
+                        <span className="ml-3 text-gray-400 text-sm group-hover:text-white transition-colors">Maintain link</span>
+                    </label>
+                    <Link to="/forgot-password" className="text-sm text-[#ff4500] hover:text-white transition-colors font-medium">Reset protocol?</Link>
                 </div>
-                <input
-                  {...registerLogin('password')}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  className="w-full bg-gray-700/30 border-b border-gray-600 py-3 pl-10 pr-12 text-white placeholder-gray-400 outline-none focus:border-purple-500 transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+
+                <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={loading}
+                    className="w-full relative group overflow-hidden bg-[#ff4500] text-white font-black tracking-widest py-4 rounded-xl shadow-[0_0_20px_rgba(255,69,0,0.3)] hover:shadow-[0_0_30px_rgba(255,69,0,0.5)] transition-all flex items-center justify-center gap-3 mt-4 border border-[#ff4500]"
                 >
-                  {showPassword ? <FiEyeOff /> : <FiEye />}
-                </button>
-              </div>
-            </div>
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+                    {loading ? (
+                        <FiHexagon className="animate-spin w-6 h-6 text-white" />
+                    ) : (
+                        <>AUTHENTICATE <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>
+                    )}
+                </motion.button>
 
-            <div className="flex items-center justify-between mt-4">
-              <label className="flex items-center cursor-pointer">
-                <input type="checkbox" className="form-checkbox rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-0 focus:ring-offset-0" />
-                <span className="ml-2 text-gray-400 text-xs select-none">Remember me</span>
-              </label>
-              <Link to="/forgot-password" className="text-xs text-purple-400 hover:text-purple-300 transition-colors">Forgot?</Link>
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              disabled={loading}
-              className="mt-8 w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-purple-500/30 transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                <>Login <FiArrowRight /></>
-              )}
-            </motion.button>
-
-            <p className="mt-6 text-xs text-center text-gray-400">
-              Don't have an account?
-              {/* This button triggers the slide to Sign Up */}
-              <button type="button" onClick={() => setIsSignUpMode(true)} className="text-purple-400 cursor-pointer hover:underline font-bold ml-1">Sign Up</button>
-            </p>
-          </form>
+                <div className="mt-8 text-center border-t border-white/10 pt-6">
+                    <p className="text-gray-400 text-sm">
+                        Unregistered entity? 
+                        <Link to="/signup" className="text-[#ff4500] font-bold ml-2 hover:text-white transition-colors tracking-wide">
+                            CREATE PROFILE
+                        </Link>
+                    </p>
+                </div>
+            </form>
         </div>
-
-        {/* =======================
-            SLIDING OVERLAY (Purple Gradient Panel)
-           ======================= */}
-        <div
-          className={`
-            absolute top-0 left-0 w-[55%] h-full z-[100] overflow-hidden
-            bg-gradient-to-br from-purple-900 via-indigo-900 to-gray-900
-            transition-all duration-700 ease-in-out
-            shadow-2xl
-          `}
-          style={{
-            // SLIDE ANIMATION:
-            // SignUp (True): Move Left (0%). 
-            // Login (False): Move Right (82% -> aligns with right edge).
-            transform: isSignUpMode ? 'translateX(0%)' : 'translateX(82%)',
-
-            // DIAGONAL LINE ANIMATION:
-            // SignUp (True): Slant from Top-Right to Bottom-Left (\ shape: 100% 0 to 85% 100%)
-            // Login (False): Slant from Top-Left to Bottom-Left (/ shape: 15% 0 to 0% 100%)
-            clipPath: isSignUpMode
-              ? 'polygon(0 0, 100% 0, 85% 100%, 0% 100%)'
-              : 'polygon(15% 0, 100% 0, 100% 100%, 0% 100%)'
-          }}
-        >
-
-          {/* Glowing Diagonal Line Overlay */}
-          {/* This div matches the clip-path edge to create the glowing line effect */}
-          <div
-            className={`
-                absolute top-0 bottom-0 w-[2px] bg-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,1)] z-20 transition-all duration-700 ease-in-out
-            `}
-            style={{
-              // Position the line exactly on the diagonal edge
-              left: isSignUpMode ? 'auto' : '0',
-              right: isSignUpMode ? '0' : 'auto',
-              // Rotate line to match the clip-path angle
-              transformOrigin: isSignUpMode ? 'top right' : 'top left',
-              transform: isSignUpMode
-                ? 'translateX(-15%) rotate(8deg) scaleY(1.1)' // Approximation for \ angle
-                : 'translateX(15%) rotate(-8deg) scaleY(1.1)'  // Approximation for / angle
-            }}
-          />
-
-          {/* Overlay Content Container */}
-          <div
-            className="relative h-full w-[182%] transition-transform duration-700 ease-in-out"
-            style={{ transform: isSignUpMode ? 'translateX(0)' : 'translateX(-45%)' }}
-          >
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light pointer-events-none"></div>
-
-            {/* LEFT OVERLAY TEXT (Shown when Sign Up Form is visible) */}
-            <div className={`
-              absolute top-0 left-0 w-[55%] h-full flex flex-col justify-center px-12 text-left
-              transition-opacity duration-300
-              ${isSignUpMode ? 'opacity-100 delay-200' : 'opacity-0'}
-            `}>
-              <h1 className="text-4xl font-bold text-white mb-2 leading-tight">Welcome<br />Back!</h1>
-              <p className="text-sm text-gray-200 leading-snug mb-6">
-                To keep connected with us please login with your personal info
-              </p>
-              <button
-                type="button"
-                onClick={() => setIsSignUpMode(false)}
-                className="w-fit px-8 py-2 border border-white/50 text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-white hover:text-purple-900 transition-all duration-300"
-              >
-                Sign In
-              </button>
-            </div>
-
-            {/* RIGHT OVERLAY TEXT (Shown when Login Form is visible) */}
-            <div className={`
-              absolute top-0 right-0 w-[55%] h-full flex flex-col justify-center items-end px-12 text-right
-              transition-opacity duration-300
-              ${!isSignUpMode ? 'opacity-100 delay-200' : 'opacity-0'}
-            `}>
-              <h1 className="text-4xl font-bold text-white mb-2 leading-tight">Welcome<br />Back!</h1>
-              <p className="text-sm text-gray-200 leading-snug mb-6">
-                To keep connected with us please login with your personal info
-              </p>
-              <Link to="/signup" className="w-fit px-8 py-2 border border-white/50 text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-white hover:text-purple-900 transition-all duration-300">
-                Sign up
-              </Link>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
+      </motion.div>
     </div>
   );
 }
-
-export default Login;

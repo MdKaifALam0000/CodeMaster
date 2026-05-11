@@ -54,8 +54,8 @@ const ProfilePopup = ({ isOpen, onClose, onOpenAIModal }) => {
       icon: LayoutDashboard,
       label: 'Dashboard',
       onClick: () => handleNavigate('/dashboard'),
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/10'
+      color: 'text-[#ff4500]',
+      bgColor: 'bg-[#ff4500]/10'
     },
     {
       icon: Sparkles,
@@ -82,8 +82,8 @@ const ProfilePopup = ({ isOpen, onClose, onOpenAIModal }) => {
       icon: User,
       label: 'Profile',
       onClick: () => handleNavigate('/dashboard'), // Assuming profile is part of dashboard for now
-      color: 'text-purple-400',
-      bgColor: 'bg-purple-500/10'
+      color: 'text-[#ff003c]',
+      bgColor: 'bg-[#ff003c]/10'
     }
   ];
 
@@ -122,8 +122,8 @@ const ProfilePopup = ({ isOpen, onClose, onOpenAIModal }) => {
                       className="w-12 h-12 rounded-full object-cover shadow-lg border border-gray-700/50"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg border border-gray-700/50">
-                      <span className="text-white text-lg font-bold">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#ff4500] to-[#ff003c] flex items-center justify-center shadow-[0_0_15px_rgba(255,69,0,0.4)] border border-[#ff4500]/50">
+                      <span className="text-white text-lg font-black tracking-wider">
                         {displayUser?.firstName?.[0]?.toUpperCase() || 'U'}
                       </span>
                     </div>

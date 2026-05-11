@@ -39,6 +39,7 @@ const AlgorithmAnimator = ({
     const [speed, setSpeed] = useState(1);
     const [showQuiz, setShowQuiz] = useState(false);
     const [showCompletion, setShowCompletion] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
 
     // Visual state for array - NOW STORES OBJECTS { id, value }
     const [array, setArray] = useState([]);
@@ -51,6 +52,16 @@ const AlgorithmAnimator = ({
     // Refs
     const timelineRef = useRef(null);
     const progressInterval = useRef(null);
+    const isMutedRef = useRef(false);
+    const speedRef = useRef(1);
+
+    // Sync state to refs for callbacks
+    useEffect(() => {
+        isMutedRef.current = isMuted;
+        if (isMuted && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
+    }, [isMuted]);
 
     /**
      * Handle timeline actions
@@ -58,8 +69,17 @@ const AlgorithmAnimator = ({
     const handleAction = useCallback((action, currentTime) => {
         switch (action.action) {
             case 'show_array':
-                // Convert raw numbers to objects with IDs
-                setArray(generateWithIds(action.data));
+                // Update array but preserve IDs if length is the same to avoid breaking Framer Motion layout animations
+                setArray(prev => {
+                    if (!prev || prev.length === 0 || prev.length !== action.data.length) {
+                        return generateWithIds(action.data);
+                    }
+                    // If length matches, update values but keep existing IDs
+                    return action.data.map((val, idx) => ({
+                        id: prev[idx].id,
+                        value: val
+                    }));
+                });
                 setHighlights({});
                 setComparing([]);
                 setSwapping([]);
@@ -118,6 +138,32 @@ const AlgorithmAnimator = ({
                 setCaption('');
                 break;
 
+            case 'set_script':
+                const textToSpeak = action.text || '';
+                setCurrentScript(textToSpeak);
+                
+                if (textToSpeak && window.speechSynthesis && !isMutedRef.current) {
+                    window.speechSynthesis.cancel(); // Stop previous utterance
+                    
+                    // Remove emojis before speaking to prevent TTS from saying "smiling face" etc.
+                    const cleanText = textToSpeak.replace(/[\u1000-\uFFFF]+/g, '').trim();
+                    
+                    if (cleanText) {
+                        const utterance = new SpeechSynthesisUtterance(cleanText);
+                        
+                        // Try to find a good English voice
+                        const voices = window.speechSynthesis.getVoices();
+                        const preferredVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Female'))) || voices.find(v => v.lang.startsWith('en'));
+                        if (preferredVoice) utterance.voice = preferredVoice;
+                        
+                        // Scale speech rate slightly with animation speed but cap it
+                        utterance.rate = Math.min(speedRef.current * 1.0, 1.5);
+                        
+                        window.speechSynthesis.speak(utterance);
+                    }
+                }
+                break;
+
             default:
                 console.log('Unknown action:', action);
         }
@@ -129,11 +175,12 @@ const AlgorithmAnimator = ({
     const handleComplete = useCallback(() => {
         setIsPlaying(false);
         setIsPaused(false);
-        setIsPlaying(false);
-        setIsPaused(false);
         setShowCompletion(true); // Show completion screen instead of auto-quiz
         if (progressInterval.current) {
             clearInterval(progressInterval.current);
+        }
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
         }
     }, []);
 
@@ -203,9 +250,55 @@ const AlgorithmAnimator = ({
                 // Initialize with stable IDs
                 setArray(generateWithIds(initialArray));
 
+                // Merge script and timeline to display the game commentary
+                const mergedTimeline = [...(data.timeline || [])];
+                
+                if (data.script && Array.isArray(data.script)) {
+                    data.script.forEach(s => {
+                        mergedTimeline.push({
+                            action: 'set_script',
+                            time: s.time,
+                            text: s.text
+                        });
+                    });
+                }
+                
+                // Sort by time initially
+                mergedTimeline.sort((a, b) => a.time - b.time);
+
+                // --- DYNAMIC TIMELINE STRETCHING FOR TTS SYNCHRONIZATION ---
+                // Problem: The AI often schedules actions too close together, causing TTS to get cut off.
+                // Solution: We calculate how long each script takes to speak, and if the next script 
+                // is scheduled before the current one finishes, we push it (and all subsequent actions) forward.
+                let accumulatedOffset = 0;
+                let expectedScriptEndTime = 0;
+
+                for (let i = 0; i < mergedTimeline.length; i++) {
+                    const action = mergedTimeline[i];
+                    
+                    // Apply any accumulated offset from previous shifts
+                    action.time += accumulatedOffset;
+
+                    if (action.action === 'set_script' && action.text) {
+                        // If this script starts before the previous one finishes, we must shift it
+                        if (action.time < expectedScriptEndTime) {
+                            const shiftAmount = expectedScriptEndTime - action.time;
+                            accumulatedOffset += shiftAmount;
+                            action.time += shiftAmount;
+                        }
+                        
+                        // Calculate TTS duration: ~150 words per minute (2.5 words/sec) + 0.5s padding
+                        const cleanText = action.text.replace(/[\u1000-\uFFFF]+/g, '').trim();
+                        const wordCount = Math.max(1, cleanText.split(/\s+/).length);
+                        const estimatedDuration = (wordCount / 2.5) + 0.5;
+                        
+                        expectedScriptEndTime = action.time + estimatedDuration;
+                    }
+                }
+
                 // Initialize timeline engine
                 timelineRef.current = new TimelineEngine(
-                    data.timeline || [],
+                    mergedTimeline,
                     handleAction,
                     handleComplete
                 );
@@ -248,6 +341,10 @@ const AlgorithmAnimator = ({
         setIsPlaying(false);
         setIsPaused(true);
 
+        if (window.speechSynthesis) {
+            window.speechSynthesis.pause();
+        }
+
         if (progressInterval.current) {
             clearInterval(progressInterval.current);
         }
@@ -262,6 +359,10 @@ const AlgorithmAnimator = ({
         timelineRef.current.resume();
         setIsPlaying(true);
         setIsPaused(false);
+
+        if (window.speechSynthesis) {
+            window.speechSynthesis.resume();
+        }
 
         progressInterval.current = setInterval(() => {
             if (timelineRef.current) {
@@ -280,9 +381,12 @@ const AlgorithmAnimator = ({
         setIsPlaying(false);
         setIsPaused(false);
         setProgress(0);
-        setProgress(0);
         setShowQuiz(false);
         setShowCompletion(false);
+        
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
 
         // We don't want to clear the array completely, just reset to original state if possible
         // But for now clearing highlights is enough, the timeline usually starts with show_array
@@ -308,6 +412,7 @@ const AlgorithmAnimator = ({
      */
     const changeSpeed = (newSpeed) => {
         setSpeed(newSpeed);
+        speedRef.current = newSpeed;
         if (timelineRef.current) {
             timelineRef.current.setSpeed(newSpeed);
         }
@@ -346,6 +451,9 @@ const AlgorithmAnimator = ({
             }
             if (progressInterval.current) {
                 clearInterval(progressInterval.current);
+            }
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
             }
         };
     }, []);
@@ -467,6 +575,14 @@ const AlgorithmAnimator = ({
                                     )}
 
                                     <div className="speed-controls">
+                                        <button 
+                                            onClick={() => setIsMuted(!isMuted)} 
+                                            className={`speed-btn ${isMuted ? 'active text-red-400' : ''}`}
+                                            title={isMuted ? "Unmute Narration" : "Mute Narration"}
+                                        >
+                                            {isMuted ? "🔇" : "🔊"}
+                                        </button>
+                                        <div className="w-px h-4 bg-gray-700 mx-1"></div>
                                         <span>Speed:</span>
                                         {[0.5, 1, 1.5, 2].map(s => (
                                             <button

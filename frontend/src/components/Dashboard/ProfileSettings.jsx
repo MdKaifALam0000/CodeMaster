@@ -173,10 +173,10 @@ const ProfileSettings = ({ profile }) => {
               <img
                 src={profile.profilePicture}
                 alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border-4 border-blue-600"
+                className="w-24 h-24 rounded-full object-cover border-4 border-[#ff4500]"
               />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center border-4 border-blue-600">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#ff4500] to-[#ff003c] flex items-center justify-center border-4 border-[#ff4500] shadow-[0_0_15px_rgba(255,69,0,0.5)]">
                 <User className="w-12 h-12 text-white" />
               </div>
             )}
@@ -206,7 +206,7 @@ const ProfileSettings = ({ profile }) => {
                 <motion.button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-[#ff4500] hover:bg-[#ff003c] text-white transition-colors disabled:opacity-50 shadow-[0_0_10px_rgba(255,69,0,0.3)]"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -240,7 +240,7 @@ const ProfileSettings = ({ profile }) => {
               {isUploading && (
                 <div className="w-full bg-gray-700 rounded-full h-2">
                   <div
-                    className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+                    className="h-2 rounded-full bg-[#ff4500] transition-all duration-300 shadow-[0_0_10px_rgba(255,69,0,0.5)]"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
@@ -399,7 +399,7 @@ const ProfileSettings = ({ profile }) => {
             <motion.button
               type="submit"
               disabled={loading}
-              className="flex items-center space-x-2 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors disabled:opacity-50"
+              className="flex items-center space-x-2 px-6 py-3 rounded-lg bg-[#ff4500] hover:bg-[#ff003c] text-white font-black tracking-widest transition-colors disabled:opacity-50 shadow-[0_0_15px_rgba(255,69,0,0.4)]"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >

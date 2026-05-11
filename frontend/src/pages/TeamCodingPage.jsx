@@ -251,13 +251,13 @@ const TeamCodingPage = () => {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'easy':
-        return 'badge-success';
+        return 'bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30';
       case 'medium':
-        return 'badge-warning';
+        return 'bg-[#ff9800]/20 text-[#ff9800] border border-[#ff9800]/30';
       case 'hard':
-        return 'badge-error';
+        return 'bg-[#ff003c]/20 text-[#ff003c] border border-[#ff003c]/30';
       default:
-        return 'badge-ghost';
+        return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
     }
   };
 
@@ -268,7 +268,7 @@ const TeamCodingPage = () => {
       isAuthenticated
     });
     return (
-      <div className="min-h-screen bg-base-100 flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center text-gray-200">
         <div className="text-center">
           <div className="loading loading-spinner loading-lg"></div>
           <p className="mt-4">Loading room...</p>
@@ -281,8 +281,8 @@ const TeamCodingPage = () => {
   // Show login prompt for unauthenticated users
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-base-100 flex items-center justify-center">
-        <div className="card w-96 bg-base-200 shadow-xl">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center text-gray-200">
+        <div className="card w-96 bg-[#0a0a0a] shadow-[0_0_30px_rgba(255,69,0,0.15)] border border-[#ff4500]/20">
           <div className="card-body text-center">
             <h2 className="card-title justify-center">Join Team Coding Session</h2>
             <p className="text-gray-600 mb-4">
@@ -293,13 +293,13 @@ const TeamCodingPage = () => {
             </p>
             <div className="card-actions justify-center gap-2">
               <button 
-                className="btn btn-primary"
+                className="px-4 py-2 bg-[#ff4500] hover:bg-[#ff003c] text-white rounded-lg transition-all shadow-[0_0_15px_rgba(255,69,0,0.4)] border border-[#ff4500]/50 font-bold tracking-widest text-sm"
                 onClick={() => navigate('/login')}
               >
                 Login to Join
               </button>
               <button 
-                className="btn btn-outline"
+                className="px-4 py-2 border border-[#ff4500] text-[#ff4500] hover:bg-[#ff4500]/10 rounded-lg transition-all font-bold tracking-widest text-sm"
                 onClick={() => navigate('/signup')}
               >
                 Create Account
@@ -317,17 +317,17 @@ const TeamCodingPage = () => {
   const isHost = currentRoom.host._id === user._id;
 
   return (
-    <div className="h-screen flex flex-col bg-base-100">
+    <div className="h-screen flex flex-col bg-[#000000] text-gray-200 font-sans">
       {/* Header */}
-      <div className="navbar bg-base-200 border-b border-base-300 px-4">
+      <div className="navbar bg-[#0a0a0a] border-b border-[#ff4500]/20 px-4 shadow-[0_4px_20px_rgba(255,69,0,0.1)]">
         <div className="flex-1">
-          <h1 className="text-xl font-bold">{currentRoom.roomName}</h1>
-          <div className={`badge ${getDifficultyColor(currentRoom.problemId.difficulty)} ml-3`}>
+          <h1 className="text-xl font-black tracking-widest text-white">{currentRoom.roomName}</h1>
+          <div className={`px-2 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase ${getDifficultyColor(currentRoom.problemId.difficulty)} ml-3`}>
             {currentRoom.problemId.difficulty}
           </div>
-          <div className="badge badge-primary ml-2">{currentRoom.problemId.tags}</div>
+          <div className="px-2 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase bg-[#ff4500]/20 text-[#ff4500] border border-[#ff4500]/30 ml-2 shadow-[0_0_10px_rgba(255,69,0,0.2)]">{currentRoom.problemId.tags}</div>
           {isHost && (
-            <div className="badge badge-warning ml-2 gap-1">
+            <div className="px-2 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase bg-[#ff9800]/20 text-[#ff9800] border border-[#ff9800]/30 ml-2 flex items-center gap-1">
               <Crown className="w-3 h-3" />
               Host
             </div>
@@ -336,24 +336,24 @@ const TeamCodingPage = () => {
 
         <div className="flex-none gap-2">
           {/* Connection Status */}
-          <div className={`badge ${connected ? 'badge-success' : 'badge-error'} gap-2`}>
-            <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+          <div className={`px-2 py-1 rounded-full text-xs font-bold flex items-center gap-2 ${connected ? 'bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30' : 'bg-[#ff003c]/20 text-[#ff003c] border border-[#ff003c]/30'}`}>
+            <div className={`w-2 h-2 rounded-full ${connected ? 'bg-[#10b981] shadow-[0_0_5px_#10b981]' : 'bg-[#ff003c] shadow-[0_0_5px_#ff003c]'}`}></div>
             {connected ? 'Connected' : 'Disconnected'}
           </div>
           {!connected && (
             <div className="tooltip tooltip-left" data-tip="Socket.IO connection failed. Check console for details.">
-              <div className="badge badge-warning">⚠️</div>
+              <div className="px-2 py-1 rounded-full text-xs bg-[#ff9800]/20 text-[#ff9800] border border-[#ff9800]/30">⚠️</div>
             </div>
           )}
 
           {/* Copy Room Link */}
-          <button className="btn btn-sm btn-ghost gap-2" onClick={copyRoomLink}>
-            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            {copied ? 'Copied!' : 'Share'}
+          <button className="btn btn-sm bg-[#111] hover:bg-[#222] border border-gray-700 text-gray-300 gap-2" onClick={copyRoomLink}>
+            {copied ? <Check className="w-4 h-4 text-[#10b981]" /> : <Copy className="w-4 h-4 text-[#ff4500]" />}
+            {copied ? <span className="text-[#10b981]">Copied!</span> : 'Share'}
           </button>
 
           {/* Leave Room */}
-          <button className="btn btn-sm btn-error gap-2" onClick={handleLeaveRoom}>
+          <button className="btn btn-sm bg-[#ff003c]/20 hover:bg-[#ff003c] border border-[#ff003c]/50 text-white gap-2 transition-all" onClick={handleLeaveRoom}>
             <LogOut className="w-4 h-4" />
             Leave
           </button>
@@ -361,11 +361,11 @@ const TeamCodingPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden bg-[#000000]">
         {/* Left Sidebar - Problem Description */}
-        <div className="w-1/4 border-r border-base-300 flex flex-col">
-          <div className="p-4 border-b border-base-300">
-            <h2 className="text-lg font-semibold">{currentRoom.problemId.title}</h2>
+        <div className="w-1/4 border-r border-[#ff4500]/20 flex flex-col bg-[#0a0a0a]">
+          <div className="p-4 border-b border-[#ff4500]/20">
+            <h2 className="text-lg font-black tracking-wider text-white">{currentRoom.problemId.title}</h2>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
             <div className="prose max-w-none">
@@ -376,12 +376,12 @@ const TeamCodingPage = () => {
 
             {currentRoom.problemId.visibleTestCases && (
               <div className="mt-6">
-                <h3 className="font-semibold mb-3">Examples:</h3>
+                <h3 className="font-bold text-[#ff4500] mb-3 uppercase tracking-widest text-xs">Examples:</h3>
                 <div className="space-y-3">
                   {currentRoom.problemId.visibleTestCases.map((example, index) => (
-                    <div key={index} className="bg-base-200 p-3 rounded-lg text-sm">
-                      <h4 className="font-semibold mb-2">Example {index + 1}:</h4>
-                      <div className="space-y-1 font-mono text-xs">
+                    <div key={index} className="bg-[#111] border border-gray-800 p-3 rounded-lg text-sm">
+                      <h4 className="font-bold text-gray-300 mb-2">Example {index + 1}:</h4>
+                      <div className="space-y-1 font-mono text-xs text-gray-400">
                         <div>
                           <strong>Input:</strong> {example.input}
                         </div>
@@ -398,14 +398,14 @@ const TeamCodingPage = () => {
         </div>
 
         {/* Center - Code Editor */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col bg-[#000000]">
           {/* Language Selector */}
-          <div className="flex justify-between items-center p-3 border-b border-base-300 bg-base-200">
+          <div className="flex justify-between items-center p-3 border-b border-[#ff4500]/20 bg-[#0a0a0a]">
             <div className="flex gap-2">
               {['javascript', 'java', 'cpp'].map((lang) => (
                 <button
                   key={lang}
-                  className={`btn btn-sm ${language === lang ? 'btn-primary' : 'btn-ghost'}`}
+                  className={`btn btn-sm border-none transition-all ${language === lang ? 'bg-[#ff4500] hover:bg-[#ff003c] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'bg-[#111] hover:bg-[#222] text-gray-400'}`}
                   onClick={() => handleLanguageChange(lang)}
                   disabled={!isHost}
                 >
@@ -416,7 +416,7 @@ const TeamCodingPage = () => {
 
             <div className="flex gap-2">
               <button
-                className={`btn btn-outline btn-sm ${loading ? 'loading' : ''}`}
+                className={`btn btn-sm border border-[#ff4500] text-[#ff4500] hover:bg-[#ff4500]/10 hover:border-[#ff4500] transition-all ${loading ? 'loading' : ''}`}
                 onClick={handleRunCode}
                 disabled={loading}
               >
@@ -424,7 +424,7 @@ const TeamCodingPage = () => {
                 Run
               </button>
               <button
-                className={`btn btn-primary btn-sm ${loading ? 'loading' : ''}`}
+                className={`btn btn-sm bg-[#ff4500] hover:bg-[#ff003c] border-none text-white shadow-[0_0_15px_rgba(255,69,0,0.4)] transition-all ${loading ? 'loading' : ''}`}
                 onClick={handleSubmitCode}
                 disabled={loading}
               >
@@ -468,29 +468,29 @@ const TeamCodingPage = () => {
         </div>
 
         {/* Right Sidebar - Tabbed Interface */}
-        <div className="w-80 border-l border-base-300 flex flex-col">
+        <div className="w-80 border-l border-[#ff4500]/20 flex flex-col min-h-0 bg-[#0a0a0a]">
           {/* Tabs */}
-          <div className="tabs tabs-boxed bg-base-200 p-2 grid grid-cols-4 gap-1">
+          <div className="flex bg-[#111] p-2 grid grid-cols-4 gap-1 border-b border-gray-800">
             <button
-              className={`tab tab-sm ${activeRightTab === 'participants' ? 'tab-active' : ''}`}
+              className={`py-1.5 rounded-lg text-sm font-bold flex items-center justify-center transition-all ${activeRightTab === 'participants' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
               onClick={() => setActiveRightTab('participants')}
             >
               <Users className="w-4 h-4" />
             </button>
             <button
-              className={`tab tab-sm ${activeRightTab === 'chat' ? 'tab-active' : ''}`}
+              className={`py-1.5 rounded-lg text-sm font-bold flex items-center justify-center transition-all ${activeRightTab === 'chat' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
               onClick={() => setActiveRightTab('chat')}
             >
               <MessageSquare className="w-4 h-4" />
             </button>
             <button
-              className={`tab tab-sm ${activeRightTab === 'testcase' ? 'tab-active' : ''}`}
+              className={`py-1.5 rounded-lg text-sm font-bold flex items-center justify-center transition-all ${activeRightTab === 'testcase' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
               onClick={() => setActiveRightTab('testcase')}
             >
               Console
             </button>
             <button
-              className={`tab tab-sm ${activeRightTab === 'result' ? 'tab-active' : ''}`}
+              className={`py-1.5 rounded-lg text-sm font-bold flex items-center justify-center transition-all ${activeRightTab === 'result' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
               onClick={() => setActiveRightTab('result')}
             >
               Result
@@ -507,22 +507,22 @@ const TeamCodingPage = () => {
                     key={participant.userId?._id || index}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
+                    className="flex items-center gap-3 p-3 bg-[#111] border border-gray-800 rounded-lg shadow-sm"
                   >
                     {participant.userId?.profilePicture ? (
                       <img
                         src={participant.userId.profilePicture}
                         alt={participant.userId.firstName}
-                        className="w-10 h-10 rounded-full"
+                        className="w-10 h-10 rounded-full border border-[#ff4500]/30"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff4500] to-[#ff003c] flex items-center justify-center text-white font-bold shadow-[0_0_10px_rgba(255,69,0,0.3)]">
                         {participant.userId?.firstName?.[0] || 'U'}
                       </div>
                     )}
                     <div className="flex-1">
-                      <p className="font-semibold">
-                        {participant.userId?.firstName} {participant.userId?.lastName}
+                      <p className="font-semibold text-gray-200">
+                        {participant.username || participant.userId?.firstName}
                       </p>
                       <p className="text-xs text-gray-500">
                         {participant.isActive ? (
@@ -543,7 +543,7 @@ const TeamCodingPage = () => {
 
           {/* Chat Tab */}
           {activeRightTab === 'chat' && (
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-h-0">
               <h3 className="font-semibold p-4 pb-2">Team Chat</h3>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 pt-2 space-y-3">
@@ -559,13 +559,13 @@ const TeamCodingPage = () => {
                     }`}
                   >
                     {msg.type !== 'system' && (
-                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">
-                        {msg.user?.firstName?.[0] || 'U'}
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ff4500] to-[#ff003c] flex items-center justify-center text-white text-sm font-bold shadow-[0_0_10px_rgba(255,69,0,0.3)]">
+                        {msg.username?.[0] || 'U'}
                       </div>
                     )}
                     <div className="flex-1">
                       {msg.type !== 'system' && (
-                        <p className="text-sm font-semibold">{msg.user?.firstName}</p>
+                        <p className="text-sm font-semibold">{msg.username}</p>
                       )}
                       <p className={msg.type === 'system' ? 'italic' : 'text-sm'}>
                         {msg.message}
@@ -580,16 +580,16 @@ const TeamCodingPage = () => {
               </div>
 
               {/* Chat Input */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-base-300">
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-[#ff4500]/20 bg-[#0a0a0a]">
                 <div className="flex gap-2">
                   <input
                     type="text"
                     placeholder="Type a message..."
-                    className="input input-bordered input-sm flex-1"
+                    className="flex-1 bg-[#111] text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 focus:border-[#ff4500] focus:ring-1 focus:ring-[#ff4500] outline-none transition-all placeholder:text-gray-600 text-sm"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                   />
-                  <button type="submit" className="btn btn-primary btn-sm">
+                  <button type="submit" className="px-3 bg-[#ff4500] hover:bg-[#ff003c] text-white rounded-lg shadow-[0_0_10px_rgba(255,69,0,0.4)] transition-all flex items-center justify-center border border-[#ff4500]/50">
                     <Send className="w-4 h-4" />
                   </button>
                 </div>
@@ -599,10 +599,10 @@ const TeamCodingPage = () => {
 
           {/* Test Results Tab */}
           {activeRightTab === 'testcase' && (
-            <div className="flex-1 p-4 overflow-y-auto">
+            <div className="flex-1 flex flex-col min-h-0 p-4 overflow-y-auto">
               <h3 className="font-semibold mb-4">Test Results</h3>
               {runResult ? (
-                <div className={`alert ${runResult.success ? 'alert-success' : 'alert-error'} mb-4`}>
+                <div className={`p-4 rounded-xl border mb-4 shadow-lg ${runResult.success ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]' : 'bg-[#ff003c]/10 border-[#ff003c]/30 text-[#ff003c]'}`}>
                   <div>
                     {runResult.success ? (
                       <div>
@@ -612,12 +612,12 @@ const TeamCodingPage = () => {
 
                         <div className="mt-4 space-y-2">
                           {runResult.testCases?.map((tc, i) => (
-                            <div key={i} className="bg-base-100 p-3 rounded text-xs">
-                              <div className="font-mono">
-                                <div><strong>Input:</strong> {tc.stdin}</div>
-                                <div><strong>Expected:</strong> {tc.expected_output}</div>
-                                <div><strong>Output:</strong> {tc.stdout}</div>
-                                <div className={'text-green-600'}>
+                            <div key={i} className="bg-[#0a0a0a] border border-gray-800 p-3 rounded-lg text-xs">
+                              <div className="font-mono text-gray-300">
+                                <div><strong className="text-gray-500">Input:</strong> {tc.stdin}</div>
+                                <div><strong className="text-gray-500">Expected:</strong> {tc.expected_output}</div>
+                                <div><strong className="text-gray-500">Output:</strong> {tc.stdout}</div>
+                                <div className={'text-[#10b981] mt-1 font-bold'}>
                                   {'✓ Passed'}
                                 </div>
                               </div>
@@ -631,12 +631,12 @@ const TeamCodingPage = () => {
                         <p className="text-sm mt-2">{runResult.error}</p>
                         <div className="mt-4 space-y-2">
                           {runResult.testCases?.map((tc, i) => (
-                            <div key={i} className="bg-base-100 p-3 rounded text-xs">
-                              <div className="font-mono">
-                                <div><strong>Input:</strong> {tc.stdin}</div>
-                                <div><strong>Expected:</strong> {tc.expected_output}</div>
-                                <div><strong>Output:</strong> {tc.stdout}</div>
-                                <div className={tc.status_id == 3 ? 'text-green-600' : 'text-red-600'}>
+                            <div key={i} className="bg-[#0a0a0a] border border-gray-800 p-3 rounded-lg text-xs">
+                              <div className="font-mono text-gray-300">
+                                <div><strong className="text-gray-500">Input:</strong> {tc.stdin}</div>
+                                <div><strong className="text-gray-500">Expected:</strong> {tc.expected_output}</div>
+                                <div><strong className="text-gray-500">Output:</strong> {tc.stdout}</div>
+                                <div className={tc.status_id == 3 ? 'text-[#10b981] font-bold mt-1' : 'text-[#ff003c] font-bold mt-1'}>
                                   {tc.status_id == 3 ? '✓ Passed' : '✗ Failed'}
                                 </div>
                               </div>
@@ -660,7 +660,7 @@ const TeamCodingPage = () => {
             <div className="flex-1 p-4 overflow-y-auto">
               <h3 className="font-semibold mb-4">Submission Result</h3>
               {submitResult ? (
-                <div className={`alert ${submitResult.accepted ? 'alert-success' : 'alert-error'}`}>
+                <div className={`p-4 rounded-xl border shadow-lg ${submitResult.accepted ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]' : 'bg-[#ff003c]/10 border-[#ff003c]/30 text-[#ff003c]'}`}>
                   <div>
                     {submitResult.accepted ? (
                       <div>

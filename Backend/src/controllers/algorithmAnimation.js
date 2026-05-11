@@ -73,13 +73,77 @@ DURATION: ${duration}s
 
 Respond with ONLY the JSON object.`;
 
+        // Define the expected JSON Schema for Structured Outputs
+        const responseSchema = {
+            type: "OBJECT",
+            properties: {
+                objective: { type: "STRING" },
+                theme: { type: "STRING" },
+                script: { 
+                    type: "ARRAY", 
+                    items: { 
+                        type: "OBJECT",
+                        properties: {
+                            time: { type: "NUMBER" },
+                            text: { type: "STRING" }
+                        },
+                        required: ["time", "text"]
+                    }
+                },
+                pseudocode: { type: "ARRAY", items: { type: "STRING" } },
+                example_trace: { 
+                    type: "ARRAY", 
+                    items: { 
+                        type: "OBJECT",
+                        properties: {
+                            step: { type: "NUMBER" },
+                            state: { type: "ARRAY", items: { type: "NUMBER" } }
+                        }
+                    }
+                },
+                timeline: {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            action: { type: "STRING", description: "Must be: show_array, highlight_index, clear_highlight, compare_indices, swap_indices, show_text, caption, or pause" },
+                            time: { type: "NUMBER" },
+                            data: { type: "ARRAY", items: { type: "NUMBER" } },
+                            index: { type: "NUMBER" },
+                            indices: { type: "ARRAY", items: { type: "NUMBER" } },
+                            color: { type: "STRING" },
+                            text: { type: "STRING" },
+                            position: { type: "STRING" },
+                            duration: { type: "NUMBER" }
+                        },
+                        required: ["action", "time"]
+                    }
+                },
+                ssml: { type: "STRING" },
+                quiz: {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            question: { type: "STRING" },
+                            options: { type: "ARRAY", items: { type: "STRING" } },
+                            correct: { type: "INTEGER" }
+                        },
+                        required: ["question", "options", "correct"]
+                    }
+                }
+            },
+            required: ["objective", "theme", "script", "pseudocode", "example_trace", "timeline", "quiz"]
+        };
+
         // Call Gemini API
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: [{ role: "user", parts: [{ text: userPrompt }] }],
             config: {
                 systemInstruction: systemPrompt,
-                responseMimeType: "application/json"
+                responseMimeType: "application/json",
+                responseSchema: responseSchema
             }
         });
 

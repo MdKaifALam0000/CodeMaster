@@ -1,0 +1,63 @@
+# CodeMaster - Technical Challenges & AI Integration Report
+
+## Part 1: Solving the Team Coding Conflict Problem
+
+### The Code Sync Conflict Problem 
+**The Problem:** When multiple users are in a team coding room, if two students type at the exact same time, their code states will conflict, causing an infinite loop of socket updates or overwriting each other's work.
+
+**How it is Currently Solved:**
+Currently, the application uses a **"Last-Write-Wins" (LWW) with Debouncing** strategy rather than strict locking. 
+*   **Debouncing:** In `TeamCodingPage.jsx`, the `handleEditorChange` function does not send a socket event on every single keystroke. Instead, it uses a `setTimeout` of 500ms. It waits until a user pauses typing for half a second before sending the `code-change` event. This prevents bombarding the server and reduces immediate overlap.
+*   **Social Awareness:** The system emits `cursor-move` and `typing` events so other users can visually see where their teammates are working, creating a "social" lock (users naturally avoid typing where someone else's cursor is).
+
+**How to implement the "Strict Lock" (Pessimistic Locking):**
+If you strictly want to prevent User B from typing while User A is typing, we would implement **Pessimistic Locking** using the Monaco Editor's native properties:
+1.  **Backend Lock:** When User A starts typing, emit an `acquire-lock` event. The server marks the room as `lockedBy: User A` and broadcasts this to everyone else.
+2.  **Frontend Read-Only:** In `TeamCodingPage.jsx`, when User B receives the lock event, we dynamically update the Monaco editor options to make it read-only (`readOnly: true`).
+3.  **Release:** Once User A stops typing for 1 second (debounced), emit a `release-lock` event, and everyone's editor becomes editable (`readOnly: false`) again.
+
+### Other Major Architectural Problems Solved
+
+#### The "Database Bloat & Memory Leak" Problem
+**The Problem:** Real-time collaboration generates thousands of events. Pushing every `code-change` and `send-message` event into MongoDB would quickly exceed limits and crash the database.
+**The Solution:** In `teamCodingSocket.js`, we implemented **Array Truncation** before saving. The database strictly maintains a rolling window of the last 10 code versions (`slice(-10)`) and last 100 chat messages (`slice(-100)`). This keeps the database fast while ensuring late-joiners still get the necessary context.
+
+#### The "Ghost Participant" Problem (Zombie Connections)
+**The Problem:** In WebSockets, if a user closes their browser or loses connection, they don't explicitly click "Leave Room," leaving them as a "ghost" online participant.
+**The Solution:** We tapped into the native Socket.IO `disconnect` event. By storing `socket.currentRoom` on the connection instance, the backend knows exactly which room to clean up the split-second the connection drops, instantly updating the UI to show the user as "Offline".
+
+#### The "Unauthorized Socket Connection" Problem
+**The Problem:** Malicious users could bypass standard REST API authentication and directly connect to the Socket.IO server to intercept code or spam.
+**The Solution:** We secured the socket connection at the handshake level using `withCredentials: true`. A custom Socket.IO middleware intercepts the connection, extracts the JWT from cookies, verifies it against `process.env.JWT_SECRET`, and forcefully rejects the handshake if invalid.
+
+---
+
+## Part 2: Generative AI Integrations
+
+The Generative AI in CodeMaster acts as the core pedagogical engine. We migrated the architecture to use the **OpenRouter API** via `axios` (specifically leveraging `google/gemini-2.0-flash-lite-preview-02-05:free`) to bypass API rate limits and billing issues.
+
+### 1. AI Code Reviewer (The "Optimize & Debug" Assistant)
+*   **Where it lives:** `Backend/src/controllers/codeReview.js`
+*   **The Workflow:** Students request a review before submitting code to the test runner, or to optimize an accepted solution.
+*   **Data Sent to AI:** The backend packages the raw code, programming language, and the exact problem description.
+*   **Prompt Engineering (Socratic Rule):** Strict prompt guardrails are enforced: `❌ DO NOT provide the complete correct solution. ❌ DO NOT write the fixed code directly.`
+*   **Output Processing:** Structured Markdown is returned and rendered into GUI tabs: Code Analysis, Issues Found, Hints/Suggestions, and Time/Space Complexity.
+
+### 2. Live Doubt Solver / DSA Tutor (The "Pair Programmer")
+*   **Where it lives:** `Backend/src/controllers/solveDoubt.js`
+*   **The Workflow:** A persistent chat interface attached to the IDE for real-time problem-solving.
+*   **Data Sent to AI:** Every request sends the *entire chat history*, problem description, visible test cases, and the *user's real-time code state* from the Monaco Editor.
+*   **The AI's Role:** It acts as an expert DSA tutor. Because it has full context of the editor, a user can ask, "Why is my loop breaking?", and the AI will analyze their exact variable states and suggest algorithmic shifts.
+
+### 3. Automated Algorithm Video Generator (The "Visual Masterpiece")
+*   **Where it lives:** `Backend/src/controllers/algorithmAnimation.js` & `AlgorithmAnimator.jsx`
+*   **The Workflow:** Transforms theoretical concepts into dynamic, interactive "videos" rendered via Framer Motion.
+*   **Enforcing Strict JSON:** To prevent UI crashes from malformed AI output, we forced the OpenRouter API to return a strict `responseSchema` (JSON object).
+*   **What the AI Generates:** The AI acts as a "Game Master" generating a theme, a narrator script, chronological UI commands (timeline), pseudocode, and a dynamic quiz.
+*   **Text-To-Speech (TTS) Synchronization:** The AI's `script` is passed to the browser's native Web Speech API. We built a dynamic algorithm that calculates the word count of the script and *stretches* the visual animation timeline so DOM animations perfectly synchronize with the computer voice.
+
+### 4. Personalized Progress Analyzer (The "Learning Roadmap")
+*   **Where it lives:** `Backend/src/controllers/progressAnalysis.js`
+*   **The Workflow:** Located in the user's dashboard, acting as a personalized learning mentor.
+*   **Data Sent to AI:** Raw database statistics from MongoDB: total problems attempted, success rates grouped by difficulty (Easy/Medium/Hard) and tags (Arrays, DP, Graphs), plus recently solved/failed problems.
+*   **Output Processing:** Translates cold JSON data into a human-readable progress report. It points out statistical weaknesses and outputs a customized study roadmap with highly specific sub-topics the student should focus on next.

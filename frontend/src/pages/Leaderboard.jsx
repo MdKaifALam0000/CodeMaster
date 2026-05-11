@@ -40,19 +40,19 @@ const Leaderboard = () => {
     const restUsers = users.slice(3);
 
     return (
-        <div className="min-h-screen bg-[#0B0F19] text-gray-200 font-sans selection:bg-blue-500/30 relative overflow-hidden">
+        <div className="min-h-screen bg-[#000000] text-gray-200 font-sans selection:bg-[#ff4500]/30 relative overflow-hidden">
             {/* Background Animated Blobs */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-                <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
-                <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#ff4500]/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
+                <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-[#ff003c]/20 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
+                <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
             </div>
 
             {/* Navigation Bar */}
             <div className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center pointer-events-none">
                 <NavLink to="/" className="flex items-center gap-3 pointer-events-auto group">
-                    <div className="bg-gray-800/50 p-2 rounded-xl border border-gray-700/50 group-hover:border-blue-500/50 transition-colors backdrop-blur-md">
-                        <Code2 className="w-6 h-6 text-blue-500" />
+                    <div className="bg-gray-800/50 p-2 rounded-xl border border-gray-700/50 group-hover:border-[#ff4500]/50 transition-colors backdrop-blur-md group-hover:shadow-[0_0_10px_rgba(255,69,0,0.3)]">
+                        <Code2 className="w-6 h-6 text-[#ff4500]" />
                     </div>
                 </NavLink>
 
@@ -91,7 +91,7 @@ const Leaderboard = () => {
 
                 {loading ? (
                     <div className="flex justify-center items-center py-20">
-                        <div className="loading loading-spinner loading-lg text-blue-500"></div>
+                        <div className="loading loading-spinner loading-lg text-[#ff4500]"></div>
                     </div>
                 ) : error ? (
                     <div className="text-center text-red-400 py-20 bg-red-500/10 rounded-2xl border border-red-500/20">
@@ -112,7 +112,7 @@ const Leaderboard = () => {
                         </div>
 
                         {/* List Section - Rest */}
-                        <div className="max-w-4xl mx-auto bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
+                        <div className="max-w-4xl mx-auto bg-[#111]/80 backdrop-blur-xl border border-gray-800 rounded-3xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                             <div className="grid grid-cols-[80px_1fr_150px] gap-4 p-4 border-b border-gray-800 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <div className="text-center">Rank</div>
                                 <div>User</div>
@@ -151,7 +151,7 @@ const PodiumCard = ({ user, rank, delay }) => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.5, type: 'spring' }}
-            className={`relative flex flex-col items-center justify-end p-6 rounded-t-3xl border-x border-t ${borderColor} bg-gradient-to-b from-gray-800/60 to-gray-900/10 backdrop-blur-xl ${height} w-full md:w-64 shadow-[0_-10px_40px_-5px] ${glowColor}`}
+            className={`relative flex flex-col items-center justify-end p-6 rounded-t-3xl border-x border-t ${borderColor} bg-gradient-to-b from-[#111] to-[#000] backdrop-blur-xl ${height} w-full md:w-64 shadow-[0_-10px_40px_-5px] ${glowColor}`}
         >
             {/* Crown/Rank Icon */}
             <div className="absolute -top-6">
@@ -222,12 +222,12 @@ const ListRow = ({ user, rank, delay }) => {
                     )}
                 </div>
                 <div>
-                    <p className="font-medium text-gray-200 group-hover:text-blue-400 transition-colors">{user.firstName} {user.lastName}</p>
+                    <p className="font-bold text-gray-200 group-hover:text-[#ff4500] transition-colors tracking-wide">{user.firstName} {user.lastName}</p>
                 </div>
             </div>
 
             <div className="text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff4500]/10 border border-[#ff4500]/20 text-[#ff4500] text-sm font-black tracking-widest shadow-[0_0_10px_rgba(255,69,0,0.3)]">
                     <span>{user.problemSolvedCount}</span>
                 </div>
             </div>

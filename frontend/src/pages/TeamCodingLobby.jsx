@@ -34,12 +34,15 @@ const TeamCodingLobby = () => {
   const { user } = useSelector((state) => state.auth);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(null); // stores roomId
+  const [joinUsername, setJoinUsername] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [problems, setProblems] = useState([]);
   const [selectedTab, setSelectedTab] = useState('all'); // 'all' or 'my-rooms'
 
   // Form state
   const [formData, setFormData] = useState({
+    username: '',
     roomName: '',
     problemId: '',
     maxParticipants: 6,
@@ -83,11 +86,24 @@ const TeamCodingLobby = () => {
     }
   };
 
-  const handleJoinRoom = async (roomId) => {
-    const result = await dispatch(joinRoom(roomId));
+  const handleJoinRoomSubmit = async (e) => {
+    e.preventDefault();
+    if (!showJoinModal || !joinUsername.trim()) return;
+    
+    // Check if there are spaces
+    if (joinUsername.includes(' ')) {
+        alert('Username must be a single word without spaces (e.g. alamkaif)');
+        return;
+    }
+
+    const roomId = showJoinModal;
+    const result = await dispatch(joinRoom({ roomId, username: joinUsername }));
 
     if (result.payload?.room) {
+      setShowJoinModal(null);
       navigate(`/team-coding/room/${roomId}`);
+    } else {
+        alert(result.payload?.error || 'Failed to join room');
     }
   };
 
@@ -106,12 +122,12 @@ const TeamCodingLobby = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-gray-200 font-sans selection:bg-blue-500/30 relative overflow-hidden">
+    <div className="min-h-screen bg-[#000000] text-gray-200 font-sans selection:bg-[#ff4500]/30 relative overflow-hidden">
       {/* Background Animated Blobs */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#ff4500]/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
+        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-[#ff003c]/20 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
       </div>
 
       {/* Main Content */}
@@ -120,17 +136,17 @@ const TeamCodingLobby = () => {
         {/* Top Bar: Brand & Create Button (Replaces Header) */}
         <div className="flex justify-between items-center mb-10">
           <NavLink to="/" className="flex items-center gap-3 group">
-            <div className="bg-gray-800/50 p-1.5 rounded-lg border border-gray-700/50 group-hover:border-blue-500/50 transition-colors">
-              <Code2 className="w-6 h-6 text-blue-500" />
+            <div className="bg-[#111]/50 p-1.5 rounded-lg border border-gray-700/50 group-hover:border-[#ff4500]/50 transition-colors shadow-[0_0_10px_rgba(255,69,0,0)] group-hover:shadow-[0_0_10px_rgba(255,69,0,0.3)]">
+              <Code2 className="w-6 h-6 text-[#ff4500]" />
             </div>
-            <span className="font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent text-xl">
+            <span className="font-black tracking-widest bg-gradient-to-r from-[#ff4500] via-[#ff003c] to-[#ff4500] bg-clip-text text-transparent text-xl uppercase">
               The Turing Forge
             </span>
           </NavLink>
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95 font-medium text-sm"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#ff4500] hover:bg-[#ff003c] text-white rounded-xl shadow-[0_0_15px_rgba(255,69,0,0.4)] transition-all active:scale-95 font-bold tracking-wider text-sm border border-[#ff4500]/50"
           >
             <Plus className="w-4 h-4" />
             <span>New Room</span>
@@ -142,7 +158,7 @@ const TeamCodingLobby = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#ff4500]/10 border border-[#ff4500]/30 text-[#ff4500] text-sm font-bold tracking-widest uppercase mb-6 shadow-[0_0_15px_rgba(255,69,0,0.2)]"
           >
             <Zap className="w-4 h-4" />
             <span>Real-time Multiplayer Coding</span>
@@ -155,7 +171,7 @@ const TeamCodingLobby = () => {
             className="text-4xl md:text-6xl font-bold mb-6"
           >
             <span className="block text-gray-100 mb-2">Code Together,</span>
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#ff4500] via-[#ff003c] to-[#ff4500] bg-clip-text text-transparent">
               Build Faster.
             </span>
           </motion.h1>
@@ -187,7 +203,7 @@ const TeamCodingLobby = () => {
               {selectedTab === 'all' && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20"
+                  className="absolute inset-0 bg-[#ff4500] rounded-lg shadow-[0_0_10px_rgba(255,69,0,0.4)]"
                 />
               )}
               <span className="relative z-10 flex items-center gap-2">
@@ -203,7 +219,7 @@ const TeamCodingLobby = () => {
               {selectedTab === 'my-rooms' && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20"
+                  className="absolute inset-0 bg-[#ff4500] rounded-lg shadow-[0_0_10px_rgba(255,69,0,0.4)]"
                 />
               )}
               <span className="relative z-10 flex items-center gap-2">
@@ -215,13 +231,13 @@ const TeamCodingLobby = () => {
 
           {/* Search */}
           <div className="relative w-full md:w-80 group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#ff4500] transition-colors" />
             <input
               type="text"
               placeholder="Search rooms or problems..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-800/50 text-gray-200 pl-10 pr-4 py-2.5 rounded-xl border border-gray-700/50 focus:border-blue-500/50 focus:bg-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all placeholder:text-gray-500"
+              className="w-full bg-[#111] text-gray-200 pl-10 pr-4 py-2.5 rounded-xl border border-[#ff4500]/20 focus:border-[#ff4500] focus:bg-[#0a0a0a] focus:ring-4 focus:ring-[#ff4500]/10 focus:outline-none transition-all placeholder:text-gray-500 shadow-[inset_0_0_10px_rgba(255,69,0,0.05)]"
             />
           </div>
         </motion.div>
@@ -230,8 +246,8 @@ const TeamCodingLobby = () => {
         {loading ? (
           <div className="flex flex-col justify-center items-center py-20 min-h-[400px]">
             <div className="relative w-16 h-16">
-              <div className="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
-              <div className="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"></div>
+              <div className="absolute inset-0 border-4 border-[#ff4500]/20 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-transparent border-t-[#ff4500] rounded-full animate-spin"></div>
             </div>
             <p className="mt-4 text-gray-400 animate-pulse">Loading rooms...</p>
           </div>
@@ -250,7 +266,7 @@ const TeamCodingLobby = () => {
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2"
+              className="px-6 py-3 bg-[#ff4500] hover:bg-[#ff003c] text-white rounded-xl font-bold tracking-wider uppercase text-sm shadow-[0_0_15px_rgba(255,69,0,0.4)] transition-all active:scale-95 flex items-center gap-2 border border-[#ff4500]/50"
             >
               <Plus className="w-5 h-5" />
               Create New Room
@@ -266,7 +282,7 @@ const TeamCodingLobby = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                  className="group relative bg-gray-900/60 backdrop-blur-xl border border-gray-800 hover:border-blue-500/30 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-300"
+                  className="group relative bg-[#111]/80 backdrop-blur-xl border border-gray-800 hover:border-[#ff4500]/30 rounded-2xl overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(255,69,0,0.15)] transition-all duration-300"
                 >
                   {/* Room Status Stripe */}
                   <div className={`absolute top-0 left-0 w-1 h-full ${room.participants.length >= room.maxParticipants ? 'bg-red-500' : 'bg-green-500'}`} />
@@ -275,7 +291,7 @@ const TeamCodingLobby = () => {
                     {/* Card Header */}
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h2 className="text-lg font-bold text-gray-100 mb-1 group-hover:text-blue-400 transition-colors line-clamp-1">
+                        <h2 className="text-lg font-bold text-gray-100 mb-1 group-hover:text-[#ff4500] transition-colors line-clamp-1">
                           {room.roomName}
                         </h2>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -302,7 +318,7 @@ const TeamCodingLobby = () => {
                         <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-700/50 border border-gray-600/30 text-gray-300">
                           {room.language}
                         </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-300">
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#ff4500]/10 border border-[#ff4500]/20 text-[#ff4500]">
                           {room.problemId?.tags || 'PRACTICE'}
                         </span>
                       </div>
@@ -311,7 +327,7 @@ const TeamCodingLobby = () => {
                     {/* Host & Users */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[1px]">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ff4500] to-[#ff003c] p-[1px] shadow-[0_0_10px_rgba(255,69,0,0.3)]">
                           <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
                             {room.host?.profilePicture ? (
                               <img src={room.host.profilePicture} alt="Host" className="w-full h-full object-cover" />
@@ -340,7 +356,7 @@ const TeamCodingLobby = () => {
                       {room.host?._id === user?._id ? (
                         <button
                           onClick={() => navigate(`/team-coding/room/${room.roomId}`)}
-                          className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-sm transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 group/btn"
+                          className="w-full py-2.5 bg-[#ff4500] hover:bg-[#ff003c] text-white rounded-lg font-bold tracking-wider text-sm transition-all shadow-[0_0_15px_rgba(255,69,0,0.3)] flex items-center justify-center gap-2 group/btn"
                         >
                           <Play className="w-4 h-4 fill-current" />
                           Resume Session
@@ -364,7 +380,7 @@ const TeamCodingLobby = () => {
                         </button>
                       ) : (
                         <button
-                          onClick={() => handleJoinRoom(room.roomId)}
+                          onClick={() => setShowJoinModal(room.roomId)}
                           className="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white rounded-lg font-medium text-sm transition-all border border-gray-700/50 hover:border-gray-600 flex items-center justify-center gap-2 group/btn"
                         >
                           <Layout className="w-4 h-4" />
@@ -413,17 +429,32 @@ const TeamCodingLobby = () => {
               </div>
 
               <form onSubmit={handleCreateRoom} className="p-6 space-y-6">
-                {/* Room Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Room Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Algorithm Practice Session"
-                    className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-600"
-                    value={formData.roomName}
-                    onChange={(e) => setFormData({ ...formData, roomName: e.target.value })}
-                    required
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Session Username */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Your Username (No Spaces)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. alamkaif"
+                      className="w-full bg-[#111] border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#ff4500]/20 focus:border-[#ff4500] outline-none transition-all placeholder:text-gray-600 shadow-[inset_0_0_10px_rgba(255,69,0,0.02)]"
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value.replace(/\s+/g, '') })}
+                      required
+                    />
+                  </div>
+
+                  {/* Room Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Room Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Algorithm Practice Session"
+                      className="w-full bg-[#111] border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#ff4500]/20 focus:border-[#ff4500] outline-none transition-all placeholder:text-gray-600 shadow-[inset_0_0_10px_rgba(255,69,0,0.02)]"
+                      value={formData.roomName}
+                      onChange={(e) => setFormData({ ...formData, roomName: e.target.value })}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -431,7 +462,7 @@ const TeamCodingLobby = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Select Problem</label>
                     <select
-                      className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none"
+                      className="w-full bg-[#111] border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#ff4500]/20 focus:border-[#ff4500] outline-none transition-all appearance-none shadow-[inset_0_0_10px_rgba(255,69,0,0.02)]"
                       value={formData.problemId}
                       onChange={(e) => setFormData({ ...formData, problemId: e.target.value })}
                       required
@@ -449,7 +480,7 @@ const TeamCodingLobby = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Language</label>
                     <select
-                      className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none"
+                      className="w-full bg-[#111] border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#ff4500]/20 focus:border-[#ff4500] outline-none transition-all appearance-none shadow-[inset_0_0_10px_rgba(255,69,0,0.02)]"
                       value={formData.language}
                       onChange={(e) => setFormData({ ...formData, language: e.target.value })}
                     >
@@ -466,7 +497,7 @@ const TeamCodingLobby = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Time Limit</label>
                     <select
-                      className="w-full bg-gray-800/50 border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none"
+                      className="w-full bg-[#111] border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#ff4500]/20 focus:border-[#ff4500] outline-none transition-all appearance-none shadow-[inset_0_0_10px_rgba(255,69,0,0.02)]"
                       value={formData.timeLimit}
                       onChange={(e) => setFormData({ ...formData, timeLimit: parseInt(e.target.value) })}
                     >
@@ -482,14 +513,14 @@ const TeamCodingLobby = () => {
                 <div>
                   <div className="flex justify-between mb-2">
                     <label className="text-sm font-medium text-gray-400">Max Participants</label>
-                    <span className="text-sm font-bold text-blue-400">{formData.maxParticipants} people</span>
+                    <span className="text-sm font-black tracking-widest text-[#ff4500]">{formData.maxParticipants} people</span>
                   </div>
                   <input
                     type="range"
                     min="2"
                     max="10"
                     step="1"
-                    className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-full h-2 bg-[#111] rounded-lg appearance-none cursor-pointer accent-[#ff4500]"
                     value={formData.maxParticipants}
                     onChange={(e) =>
                       setFormData({ ...formData, maxParticipants: parseInt(e.target.value) })
@@ -513,7 +544,7 @@ const TeamCodingLobby = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 font-medium text-sm flex items-center gap-2"
+                    className="px-5 py-2.5 rounded-xl bg-[#ff4500] hover:bg-[#ff003c] text-white shadow-[0_0_15px_rgba(255,69,0,0.4)] transition-all active:scale-95 font-bold tracking-widest text-sm flex items-center gap-2 border border-[#ff4500]/50"
                   >
                     {loading ? (
                       <>
@@ -529,6 +560,70 @@ const TeamCodingLobby = () => {
                   </button>
                 </div>
 
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Join Room Modal */}
+      <AnimatePresence>
+        {showJoinModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowJoinModal(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative w-full max-w-sm bg-[#0F1623] border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="px-6 py-4 border-b border-gray-800 bg-gray-900/50 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-100">Join Session</h3>
+                <button
+                  onClick={() => setShowJoinModal(null)}
+                  className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleJoinRoomSubmit} className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Choose Your Username</label>
+                  <div className="text-xs text-gray-500 mb-3">Please use a single word without spaces.</div>
+                  <input
+                    type="text"
+                    placeholder="e.g. alamkaif"
+                    className="w-full bg-[#111] border border-gray-700 text-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#ff4500]/20 focus:border-[#ff4500] outline-none transition-all placeholder:text-gray-600 shadow-[inset_0_0_10px_rgba(255,69,0,0.02)]"
+                    value={joinUsername}
+                    onChange={(e) => setJoinUsername(e.target.value.replace(/\s+/g, ''))}
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-800/50">
+                  <button
+                    type="button"
+                    onClick={() => setShowJoinModal(null)}
+                    className="px-5 py-2.5 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors font-medium text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-5 py-2.5 rounded-xl bg-[#ff4500] hover:bg-[#ff003c] text-white shadow-[0_0_15px_rgba(255,69,0,0.4)] transition-all font-bold tracking-widest text-sm border border-[#ff4500]/50"
+                  >
+                    Join Now
+                  </button>
+                </div>
               </form>
             </motion.div>
           </div>

@@ -59,9 +59,9 @@ export const getRoomById = createAsyncThunk(
 // Join a room
 export const joinRoom = createAsyncThunk(
   'teamCoding/joinRoom',
-  async (roomId, { rejectWithValue }) => {
+  async ({ roomId, username }, { rejectWithValue }) => {
     try {
-      const response = await axiosClient.post(`/team/room/${roomId}/join`);
+      const response = await axiosClient.post(`/team/room/${roomId}/join`, { username });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);

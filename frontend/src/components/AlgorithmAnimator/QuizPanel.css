@@ -1,8 +1,8 @@
 .quiz-panel {
-    background: #1e1e2f;
+    background: #111;
     border-radius: 20px;
     padding: 2rem;
-    border: 1px solid #312e81;
+    border: 1px solid rgba(255, 69, 0, 0.3);
     max-width: 600px;
     margin: 0 auto;
     position: relative;
@@ -17,8 +17,9 @@
 }
 
 .quest-badge {
-    background: #4338ca;
-    color: #e0e7ff;
+    background: rgba(255, 69, 0, 0.2);
+    color: #ff4500;
+    border: 1px solid rgba(255, 69, 0, 0.3);
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 0.75rem;
@@ -40,7 +41,7 @@
 }
 
 .pill.active {
-    background: #818cf8;
+    background: #ff4500;
     width: 40px;
 }
 
@@ -80,8 +81,8 @@
 }
 
 .option-card.selected {
-    background: rgba(99, 102, 241, 0.2);
-    border-color: #6366f1;
+    background: rgba(255, 69, 0, 0.2);
+    border-color: #ff4500;
 }
 
 .option-key {
@@ -94,7 +95,7 @@
     border-radius: 6px;
     margin-right: 12px;
     font-weight: 600;
-    color: #a5b4fc;
+    color: #ff4500;
     flex-shrink: 0;
 }
 
@@ -103,7 +104,7 @@
 }
 
 .check-mark {
-    background: #6366f1;
+    background: #ff4500;
     color: white;
     width: 24px;
     height: 24px;
@@ -125,7 +126,7 @@
     align-items: center;
     gap: 8px;
     padding: 12px 24px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, #ff4500, #ff003c);
     color: white;
     border: none;
     border-radius: 12px;
@@ -142,7 +143,7 @@
 
 .next-btn:not(:disabled):hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
 }
 
 /* Results Mode */
@@ -168,7 +169,7 @@
 }
 
 .score-badge span {
-    color: #fbbf24;
+    color: #ff4500;
 }
 
 .message {

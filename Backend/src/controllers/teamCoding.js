@@ -9,8 +9,12 @@ const { nanoid } = require('nanoid');
 const createRoom = async (req, res) => {
     try {
         console.log('Creating room, body:', req.body);
-        const { roomName, problemId, maxParticipants, language, timeLimit } = req.body; // timeLimit in minutes
+        const { roomName, problemId, maxParticipants, language, timeLimit, username } = req.body; // timeLimit in minutes
         const userId = req.result._id;
+
+        if (!username || username.trim().length === 0) {
+            return res.status(400).json({ success: false, error: 'Session username is required' });
+        }
 
         // Validate problem exists
         const problem = await Problem.findById(problemId);
@@ -39,6 +43,7 @@ const createRoom = async (req, res) => {
             host: userId,
             participants: [{
                 userId,
+                username: username.trim(),
                 joinedAt: new Date(),
                 isActive: true
             }],
@@ -142,7 +147,12 @@ const getRoomById = async (req, res) => {
 const joinRoom = async (req, res) => {
     try {
         const { roomId } = req.params;
+        const { username } = req.body;
         const userId = req.result._id;
+
+        if (!username || username.trim().length === 0) {
+            return res.status(400).json({ success: false, error: 'Session username is required' });
+        }
 
         const room = await TeamRoom.findOne({ roomId });
 
@@ -190,6 +200,7 @@ const joinRoom = async (req, res) => {
         // Add participant
         room.participants.push({
             userId,
+            username: username.trim(),
             joinedAt: new Date(),
             isActive: true
         });

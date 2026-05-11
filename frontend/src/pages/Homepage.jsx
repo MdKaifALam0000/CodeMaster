@@ -12,7 +12,8 @@ import {
   Users,
   ChevronRight,
   Menu,
-  X
+  X,
+  Hexagon
 } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 import { logoutUser } from '../authSlice';
@@ -20,6 +21,7 @@ import Dashboard from '../components/Dashboard/Dashboard';
 
 import ProfilePopup from '../components/Dashboard/ProfilePopup';
 import AIAnalysisModal from '../components/Dashboard/AIAnalysisModal';
+import bgImage from '../assets/Homepageimage/Gemini_Generated_Image_wwax5swwax5swwax.png';
 
 // Helper function for formatting dates
 const formatDate = (dateString) => {
@@ -58,11 +60,11 @@ const formatDate = (dateString) => {
 const getDifficultyStyle = (difficulty) => {
   switch (difficulty?.toLowerCase()) {
     case 'easy':
-      return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]';
     case 'medium':
-      return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      return 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]';
     case 'hard':
-      return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+      return 'bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.2)]';
     default:
       return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
   }
@@ -250,7 +252,7 @@ function Homepage() {
       width: "90%",
       y: 20,
       borderRadius: "50px",
-      backgroundColor: "rgba(0, 0, 0, 0.9)",
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
       backdropFilter: "blur(6px)",
       border: "1px solid rgba(255, 255, 255, 0.05)",
       padding: "15px 30px",
@@ -261,10 +263,10 @@ function Homepage() {
       y: 20,
       borderRadius: "50px",
       backgroundColor: "rgba(10, 10, 10, 0.95)", // Darker black
-      backdropFilter: "blur(10px)",
-      border: "1px solid rgba(255, 255, 255, 0.15)",
+      backdropFilter: "blur(12px)",
+      border: "1px solid rgba(255, 69, 0, 0.2)",
       padding: "12px 30px",
-      boxShadow: "0 10px 30px -10px rgba(0, 0, 0, 0.5)"
+      boxShadow: "0 10px 30px -10px rgba(255, 69, 0, 0.2)"
     }
   };
 
@@ -273,7 +275,7 @@ function Homepage() {
       width: "95%",
       y: 15,
       borderRadius: "20px",
-      backgroundColor: "rgba(0, 0, 0, 0.9)",
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
       backdropFilter: "blur(6px)",
       padding: "15px 20px"
     },
@@ -282,19 +284,34 @@ function Homepage() {
       y: 10,
       borderRadius: "30px",
       backgroundColor: "rgba(10, 10, 10, 0.95)", // Darker black
-      backdropFilter: "blur(10px)",
+      backdropFilter: "blur(12px)",
       padding: "10px 20px",
-      border: "1px solid rgba(255, 255, 255, 0.1)"
+      border: "1px solid rgba(255, 69, 0, 0.2)"
     }
   };
 
+  const glassPanelClass = "bg-[#0a0a0a]/70 backdrop-blur-2xl border border-white/10 shadow-[0_0_25px_rgba(255,69,0,0.05)] hover:shadow-[0_0_35px_rgba(255,69,0,0.15)] transition-all duration-500 rounded-3xl";
+
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-gray-200 font-sans selection:bg-blue-500/30 overflow-x-hidden">
-      {/* Background Animated Blobs */}
+    <div className="min-h-screen bg-black text-gray-200 font-sans selection:bg-[#ff4500] selection:text-black overflow-x-hidden relative">
+      
+      {/* INFINITELY SCALING BACKGROUND IMAGE */}
+      <motion.img 
+        src={bgImage} 
+        alt="Cyberpunk Background"
+        className="fixed inset-0 w-full h-full object-cover z-0 opacity-40 mix-blend-screen pointer-events-none"
+        animate={{ scale: [1, 1.15, 1] }}
+        transition={{ duration: 25, ease: "easeInOut", repeat: Infinity }}
+      />
+
+      {/* Holographic Grid Overlay */}
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#ff45000a_1px,transparent_1px),linear-gradient(to_bottom,#ff45000a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none z-0" />
+
+      {/* Ambient Neon Glows */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
+        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-[#ff003c]/10 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
       </div>
 
       {/* --- HEADER CONTAINER --- */}
@@ -311,11 +328,13 @@ function Homepage() {
             <motion.div
               animate={{ rotate: isScrolled ? 360 : 0 }}
               transition={{ duration: 0.5 }}
+              className="relative w-8 h-8 flex items-center justify-center"
             >
-              <Code2 className={`text-blue-500 transition-all duration-300 ${isScrolled ? 'w-6 h-6' : 'w-8 h-8'}`} />
+              <Hexagon className="absolute text-[#ff4500] w-full h-full animate-pulse opacity-50 group-hover:opacity-100 transition-opacity duration-300" />
+              <Code2 className={`text-white transition-all duration-300 relative z-10 ${isScrolled ? 'w-4 h-4' : 'w-5 h-5'}`} />
             </motion.div>
-            <span className={`font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent transition-all duration-300 ${isScrolled ? 'text-lg' : 'text-xl md:text-2xl'}`}>
-              The Turing Forge
+            <span className={`font-bold tracking-wider text-white transition-all duration-300 ${isScrolled ? 'text-lg' : 'text-xl'}`}>
+              CODE<span className="text-[#ff4500]">MASTER</span>
             </span>
           </NavLink>
 
@@ -324,7 +343,7 @@ function Homepage() {
             {/* Solved Problems Stat */}
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="hidden lg:flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20"
+              className="hidden lg:flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
             >
               <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
               <span className="text-xs font-medium text-emerald-400">{solvedCount}/{totalProblems} Solved</span>
@@ -333,7 +352,7 @@ function Homepage() {
             {/* Leaderboard Button */}
             <NavLink
               to="/leaderboard"
-              className="text-sm font-medium text-gray-300 hover:text-white transition-colors flex items-center gap-1"
+              className="text-sm font-medium text-gray-300 hover:text-[#ff4500] transition-colors flex items-center gap-1 tracking-wide"
             >
               <Trophy className="w-4 h-4" />
               <span className="hidden xl:inline">Leaderboard</span>
@@ -343,7 +362,7 @@ function Homepage() {
             {user && (
               <NavLink
                 to="/team-coding"
-                className="text-sm font-medium text-gray-300 hover:text-white transition-colors flex items-center gap-1"
+                className="text-sm font-medium text-gray-300 hover:text-[#ff4500] transition-colors flex items-center gap-1 tracking-wide"
               >
                 <Users className="w-4 h-4" />
                 <span className="hidden xl:inline">Team Code</span>
@@ -355,34 +374,34 @@ function Homepage() {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsProfilePopupOpen(!isProfilePopupOpen)}
-                className="relative pl-1 pr-3 py-1 rounded-full bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 transition-all flex items-center gap-2"
+                className="relative pl-1 pr-3 py-1 rounded-full bg-black/50 hover:bg-[#ff4500]/10 border border-[#ff4500]/30 hover:border-[#ff4500]/60 transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(255,69,0,0.1)]"
               >
                 {user?.profilePicture ? (
                   <img
                     src={user.profilePicture}
                     alt={user.firstName}
-                    className="w-7 h-7 rounded-full object-cover shadow-inner"
+                    className="w-7 h-7 rounded-full object-cover shadow-inner border border-[#ff4500]/30"
                   />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#ff4500] to-[#ff003c] flex items-center justify-center text-white font-bold text-xs shadow-inner">
                     {user?.firstName?.charAt(0)?.toUpperCase()}
                   </div>
                 )}
-                <span className="hidden md:block text-sm font-medium text-gray-300">{user?.firstName}</span>
+                <span className="hidden md:block text-sm font-bold tracking-wide text-white">{user?.firstName}</span>
               </motion.button>
             ) : (
               <NavLink
                 to="/login"
-                className={`text-sm font-medium transition-colors hover:text-blue-400 text-gray-200`}
+                className={`text-sm font-bold tracking-widest transition-colors hover:text-[#ff4500] text-gray-200`}
               >
-                Login
+                LOGIN
               </NavLink>
             )}
           </div>
 
           {/* Mobile Menu Toggle */}
           <div className="md:hidden">
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-200">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-[#ff4500] hover:text-white transition-colors">
               {mobileMenuOpen ? <X /> : <Menu />}
             </button>
           </div>
@@ -399,13 +418,13 @@ function Homepage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
+                <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight text-white drop-shadow-[0_0_20px_rgba(255,69,0,0.3)]">
                   Master Your <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-[#ff4500] to-[#ff003c]">
                     Coding Skills
                   </span>
                 </h1>
-                <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto font-light leading-relaxed">
                   Enhance your problem-solving capabilities with our curated collection of algorithmic challenges. Join a community of developers leveling up together.
                 </p>
               </motion.div>
@@ -417,23 +436,23 @@ function Homepage() {
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
                 {[
-                  { label: "Total Problems", value: totalProblems, color: "text-blue-400", icon: Code2, bg: "bg-blue-500/10", border: "border-blue-500/20" },
-                  { label: "Problems Solved", value: solvedCount, color: "text-emerald-400", icon: CheckCircle, bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-                  { label: "Completion Rate", value: `${totalProblems > 0 ? Math.round((solvedCount / totalProblems) * 100) : 0}%`, color: "text-purple-400", icon: Activity, bg: "bg-purple-500/10", border: "border-purple-500/20" }
+                  { label: "Total Problems", value: totalProblems, color: "text-[#ff4500]", icon: Code2, bg: "bg-[#ff4500]/10", border: "border-[#ff4500]/30" },
+                  { label: "Problems Solved", value: solvedCount, color: "text-emerald-400", icon: CheckCircle, bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
+                  { label: "Completion Rate", value: `${totalProblems > 0 ? Math.round((solvedCount / totalProblems) * 100) : 0}%`, color: "text-white", icon: Activity, bg: "bg-white/10", border: "border-white/20" }
                 ].map((stat, i) => (
                   <motion.div
                     key={i}
-                    whileHover={{ y: -5 }}
-                    className={`backdrop-blur-md rounded-2xl p-6 border ${stat.border} ${stat.bg} relative overflow-hidden group`}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    className={`backdrop-blur-xl rounded-3xl p-6 border ${stat.border} ${stat.bg} relative overflow-hidden group shadow-[0_0_20px_rgba(0,0,0,0.5)]`}
                   >
                     <div className="relative z-10">
-                      <div className={`p-3 rounded-xl w-fit mb-4 ${stat.color} bg-black/20`}>
+                      <div className={`p-3 rounded-xl w-fit mb-4 ${stat.color} bg-black/40 border border-white/5`}>
                         <stat.icon className="w-6 h-6" />
                       </div>
-                      <div className={`text-4xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
-                      <div className="text-sm text-gray-400 font-medium">{stat.label}</div>
+                      <div className={`text-4xl font-black ${stat.color} mb-1 drop-shadow-md`}>{stat.value}</div>
+                      <div className="text-sm text-gray-400 font-bold tracking-widest uppercase">{stat.label}</div>
                     </div>
-                    <div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-10 ${stat.color.replace('text', 'bg')}`} />
+                    <div className={`absolute -right-4 -bottom-4 w-32 h-32 rounded-full opacity-20 blur-2xl ${stat.color.replace('text', 'bg')}`} />
                   </motion.div>
                 ))}
               </motion.div>
@@ -448,68 +467,68 @@ function Homepage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="container mx-auto px-6 mb-12"
+              className="container mx-auto px-6 mb-16"
             >
-              <div className="bg-gray-900/40 backdrop-blur-xl rounded-3xl border border-gray-800 p-8 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                  <Activity className="w-64 h-64 text-blue-500" />
+              <div className={`${glassPanelClass} p-8 relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                  <Activity className="w-64 h-64 text-[#ff4500]" />
                 </div>
 
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 relative z-10">
                   <div>
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-3 mb-2">
-                      Your Progress
+                    <h2 className="text-2xl font-black tracking-wider text-white flex items-center gap-3 mb-2">
+                      YOUR PROGRESS
                     </h2>
-                    <p className="text-gray-400 text-sm">Keep up the momentum to reach your goals.</p>
+                    <p className="text-gray-400 text-sm font-light">Keep up the momentum to reach your goals.</p>
                   </div>
                   <div className="flex items-center gap-3 mt-4 md:mt-0">
-                    <div className="px-5 py-2.5 bg-orange-500/10 rounded-xl border border-orange-500/20 flex items-center gap-2">
-                      <Zap className="w-5 h-5 text-orange-400 fill-orange-400" />
-                      <span className="text-orange-400 font-bold">{progressStats.streak} Day Streak</span>
+                    <div className="px-5 py-2.5 bg-[#ff4500]/10 rounded-xl border border-[#ff4500]/30 flex items-center gap-2 shadow-[0_0_15px_rgba(255,69,0,0.2)]">
+                      <Zap className="w-5 h-5 text-[#ff4500] fill-[#ff4500]" />
+                      <span className="text-[#ff4500] font-bold tracking-wide">{progressStats.streak} Day Streak</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 relative z-10">
                   {/* Weekly Progress */}
-                  <div className="bg-black/20 rounded-2xl p-5 border border-gray-800">
+                  <div className="bg-[#111]/80 rounded-2xl p-5 border border-white/10 shadow-inner">
                     <div className="flex justify-between items-start mb-4">
-                      <div className="p-2 bg-blue-500/10 rounded-lg">
-                        <Activity className="w-5 h-5 text-blue-400" />
+                      <div className="p-2 bg-[#ff4500]/10 border border-[#ff4500]/20 rounded-lg">
+                        <Activity className="w-5 h-5 text-[#ff4500]" />
                       </div>
-                      <span className="text-2xl font-bold text-white">{progressStats.weeklyProgress}</span>
+                      <span className="text-3xl font-black text-white">{progressStats.weeklyProgress}</span>
                     </div>
-                    <div className="text-sm text-gray-400">Problems solved this week</div>
+                    <div className="text-xs text-gray-400 font-bold tracking-widest uppercase">Problems solved this week</div>
                   </div>
 
                   {/* Monthly Progress */}
-                  <div className="bg-black/20 rounded-2xl p-5 border border-gray-800">
+                  <div className="bg-[#111]/80 rounded-2xl p-5 border border-white/10 shadow-inner">
                     <div className="flex justify-between items-start mb-4">
-                      <div className="p-2 bg-purple-500/10 rounded-lg">
-                        <Trophy className="w-5 h-5 text-purple-400" />
+                      <div className="p-2 bg-[#ff003c]/10 border border-[#ff003c]/20 rounded-lg">
+                        <Trophy className="w-5 h-5 text-[#ff003c]" />
                       </div>
-                      <span className="text-2xl font-bold text-white">{progressStats.monthlyProgress}</span>
+                      <span className="text-3xl font-black text-white">{progressStats.monthlyProgress}</span>
                     </div>
-                    <div className="text-sm text-gray-400">Problems solved this month</div>
+                    <div className="text-xs text-gray-400 font-bold tracking-widest uppercase">Problems solved this month</div>
                   </div>
 
                   {/* Difficulty Breakdown */}
-                  <div className="bg-black/20 rounded-2xl p-5 border border-gray-800 col-span-1 lg:col-span-2">
-                    <h3 className="text-sm font-medium text-gray-400 mb-4">Difficulty Breakdown</h3>
-                    <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-[#111]/80 rounded-2xl p-5 border border-white/10 col-span-1 lg:col-span-2 shadow-inner">
+                    <h3 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-4">Difficulty Breakdown</h3>
+                    <div className="grid grid-cols-3 gap-6">
                       {[
-                        { label: 'Easy', count: progressStats.difficultyCounts.easy, color: 'bg-emerald-500' },
-                        { label: 'Medium', count: progressStats.difficultyCounts.medium, color: 'bg-amber-500' },
-                        { label: 'Hard', count: progressStats.difficultyCounts.hard, color: 'bg-rose-500' }
+                        { label: 'Easy', count: progressStats.difficultyCounts.easy, color: 'bg-emerald-500', shadow: 'shadow-[0_0_10px_rgba(16,185,129,0.5)]' },
+                        { label: 'Medium', count: progressStats.difficultyCounts.medium, color: 'bg-amber-500', shadow: 'shadow-[0_0_10px_rgba(245,158,11,0.5)]' },
+                        { label: 'Hard', count: progressStats.difficultyCounts.hard, color: 'bg-rose-500', shadow: 'shadow-[0_0_10px_rgba(244,63,94,0.5)]' }
                       ].map((diff) => (
                         <div key={diff.label} className="space-y-2">
-                          <div className="flex justify-between text-xs text-gray-400">
+                          <div className="flex justify-between text-xs font-bold text-gray-300">
                             <span>{diff.label}</span>
                             <span>{diff.count}</span>
                           </div>
-                          <div className="h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
+                          <div className="h-1.5 bg-black rounded-full overflow-hidden border border-white/5">
                             <motion.div
-                              className={`h-full ${diff.color}`}
+                              className={`h-full ${diff.color} ${diff.shadow}`}
                               initial={{ width: 0 }}
                               animate={{ width: `${(diff.count / (solvedCount || 1)) * 100}%` }}
                               transition={{ duration: 1, delay: 0.5 }}
@@ -522,19 +541,19 @@ function Homepage() {
                 </div>
 
                 {/* Overall Progress Bar */}
-                <div className="relative z-10">
-                  <div className="flex justify-between text-sm mb-2">
+                <div className="relative z-10 mt-6 bg-[#111]/80 p-5 rounded-2xl border border-white/10">
+                  <div className="flex justify-between text-xs font-bold tracking-widest uppercase mb-3">
                     <span className="text-gray-400">Overall Completion</span>
-                    <span className="text-white font-medium">{Math.round((solvedCount / totalProblems) * 100) || 0}%</span>
+                    <span className="text-[#ff4500] font-black">{Math.round((solvedCount / totalProblems) * 100) || 0}%</span>
                   </div>
-                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-3 bg-black rounded-full overflow-hidden border border-white/10 relative">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 relative"
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#ff003c] via-[#ff4500] to-orange-400 shadow-[0_0_15px_rgba(255,69,0,0.8)]"
                       initial={{ width: 0 }}
                       animate={{ width: `${(solvedCount / totalProblems) * 100 || 0}%` }}
                       transition={{ duration: 1.2, ease: "easeOut" }}
                     >
-                      <div className="absolute top-0 right-0 bottom-0 w-20 bg-gradient-to-l from-white/20 to-transparent" />
+                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay" />
                     </motion.div>
                   </div>
                 </div>
@@ -552,37 +571,37 @@ function Homepage() {
             transition={{ delay: 0.3 }}
             className="flex flex-col md:flex-row gap-4 mb-8"
           >
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <div className="relative flex-1 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-[#ff4500] transition-colors" />
               <input
                 type="text"
                 placeholder="Search problems..."
-                className="w-full bg-gray-900/50 border border-gray-800 text-gray-200 pl-12 pr-4 py-3.5 rounded-2xl focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-gray-600 backdrop-blur-sm"
+                className="w-full bg-[#111]/80 border border-white/10 text-white pl-12 pr-4 py-4 rounded-2xl focus:outline-none focus:border-[#ff4500] focus:ring-1 focus:ring-[#ff4500] transition-all placeholder:text-gray-600 backdrop-blur-md shadow-inner"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar items-center">
               {['all', 'easy', 'medium', 'hard'].map((diff) => (
                 <button
                   key={diff}
                   onClick={() => setFilters({ ...filters, difficulty: diff })}
-                  className={`px-6 py-3.5 rounded-2xl capitalize text-sm font-medium transition-all whitespace-nowrap border ${filters.difficulty === diff
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20'
-                    : 'bg-gray-900/50 text-gray-400 border-gray-800 hover:bg-gray-800 hover:text-white'
+                  className={`px-6 py-4 rounded-2xl capitalize text-sm font-bold tracking-wider transition-all whitespace-nowrap border ${filters.difficulty === diff
+                    ? 'bg-[#ff4500] text-white border-[#ff4500] shadow-[0_0_15px_rgba(255,69,0,0.4)]'
+                    : 'bg-[#111]/80 text-gray-400 border-white/10 hover:border-[#ff4500]/50 hover:text-white'
                     }`}
                 >
                   {diff}
                 </button>
               ))}
 
-              <div className="w-px bg-gray-800 mx-2" />
+              <div className="w-px h-8 bg-white/20 mx-2" />
 
               <select
                 value={filters.tag}
                 onChange={(e) => setFilters({ ...filters, tag: e.target.value })}
-                className="px-4 py-3.5 rounded-2xl bg-gray-900/50 border border-gray-800 text-gray-400 text-sm font-medium focus:outline-none focus:border-blue-500/50 hover:bg-gray-800 transition-all appearance-none cursor-pointer min-w-[140px]"
+                className="px-6 py-4 rounded-2xl bg-[#111]/80 border border-white/10 text-gray-300 text-sm font-bold tracking-wider focus:outline-none focus:border-[#ff4500] hover:border-[#ff4500]/50 transition-all appearance-none cursor-pointer min-w-[150px] shadow-inner"
               >
                 <option value="all">All Tags</option>
                 <option value="array">Array</option>
@@ -604,13 +623,13 @@ function Homepage() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-20"
+                className="text-center py-20 bg-[#0a0a0a]/50 backdrop-blur-md rounded-3xl border border-white/5"
               >
-                <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-800">
+                <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]">
                   <Search className="w-8 h-8 text-gray-600" />
                 </div>
-                <h3 className="text-xl font-medium text-gray-300 mb-2">No problems found</h3>
-                <p className="text-gray-500">Try adjusting your search or filters</p>
+                <h3 className="text-xl font-bold tracking-wider text-white mb-2">NO RECORDS FOUND</h3>
+                <p className="text-gray-500 font-light">Adjust search parameters or filters</p>
               </motion.div>
             ) : (
               filteredProblems.map((problem, index) => (
@@ -618,28 +637,30 @@ function Homepage() {
                   key={problem._id}
                   variants={itemVariants}
                   whileHover={{ scale: 1.01, x: 4 }}
-                  className="group bg-gray-900/40 hover:bg-gray-900/60 backdrop-blur-md border border-gray-800/50 hover:border-blue-500/30 rounded-2xl p-5 transition-all cursor-pointer relative overflow-hidden"
+                  className="group bg-[#0a0a0a]/70 hover:bg-black backdrop-blur-xl border border-white/10 hover:border-[#ff4500]/50 rounded-2xl p-5 transition-all cursor-pointer relative overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_20px_rgba(255,69,0,0.2)]"
                 >
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#ff4500]/0 via-[#ff4500]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  
                   <div className="flex items-center justify-between relative z-10">
                     <div className="flex items-center gap-6">
-                      <span className="text-lg font-mono text-gray-600 font-medium w-6">
+                      <span className="text-lg font-mono text-gray-600 font-black w-6 group-hover:text-[#ff4500]/50 transition-colors">
                         {(index + 1).toString().padStart(2, '0')}
                       </span>
                       <div>
                         <NavLink
                           to={`/problem/${problem._id}`}
-                          className="text-lg font-semibold text-gray-200 group-hover:text-blue-400 transition-colors flex items-center gap-3"
+                          className="text-lg font-bold text-gray-200 group-hover:text-white transition-colors flex items-center gap-3 tracking-wide"
                         >
                           {problem.title}
                           {isProblemSolved(problem._id) && (
-                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                            <CheckCircle className="w-4 h-4 text-emerald-500 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
                           )}
                         </NavLink>
-                        <div className="flex items-center gap-3 mt-2">
-                          <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium border ${getDifficultyStyle(problem.difficulty)}`}>
+                        <div className="flex items-center gap-3 mt-3">
+                          <span className={`px-3 py-1 rounded-md text-xs font-bold tracking-widest uppercase border ${getDifficultyStyle(problem.difficulty)}`}>
                             {problem.difficulty}
                           </span>
-                          <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700">
+                          <span className="px-3 py-1 rounded-md text-xs font-bold tracking-widest uppercase bg-[#111] text-gray-400 border border-white/10 shadow-inner">
                             {problem.tags}
                           </span>
                         </div>
@@ -650,8 +671,8 @@ function Homepage() {
                       to={`/problem/${problem._id}`}
                       className="opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-4 group-hover:translate-x-0"
                     >
-                      <div className="w-10 h-10 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center">
-                        <ChevronRight className="w-5 h-5" />
+                      <div className="w-12 h-12 rounded-full bg-[#ff4500] text-white flex items-center justify-center shadow-[0_0_15px_rgba(255,69,0,0.4)]">
+                        <ChevronRight className="w-6 h-6" />
                       </div>
                     </NavLink>
                   </div>

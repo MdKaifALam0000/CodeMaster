@@ -1,0 +1,71 @@
+# CodeMaster - Comprehensive System Architecture & Functionalities Report
+
+CodeMaster is an advanced, full-stack educational coding platform tailored for developers to enhance their Data Structures and Algorithms (DSA) proficiency. It bridges the gap between traditional coding environments (like LeetCode) and modern collaborative/AI tools. 
+
+The platform is designed with a modern tech stack (React/Vite on the frontend, Node.js/Express on the backend, MongoDB Atlas for persistence, and Redis for performance caching) and serves three primary pillars of learning: **Solo Problem Solving**, **Real-time Team Collaboration**, and **AI-Driven Mentorship**.
+
+---
+
+## Part 1: Core System Functionalities
+
+### 1. Advanced Problem Solving Environment
+The core of CodeMaster is its interactive coding arena, designed to simulate professional development environments.
+*   **Integrated Development Environment (IDE):** Powered by the **Monaco Editor** (the engine behind VS Code), it provides syntax highlighting, auto-completion, and code formatting.
+*   **Polyglot Execution:** Users can write, test, and submit code in multiple programming languages, specifically **JavaScript, Java, and C++**.
+*   **Real-time Evaluation Engine:** Code submissions are executed against hidden and visible test cases. The system tracks execution time, space complexity, and categorizes submissions (Accepted, Wrong Answer, Runtime Error).
+*   **Performance Optimization:** Frequent queries (like fetching problem descriptions or recent test results) are cached using **Redis Cloud**, drastically reducing database load and improving the UI's responsiveness.
+
+### 2. Team Coding (Synchronous Collaboration)
+CodeMaster features a "Team Coding" module that allows users to collaborate on algorithmic problems in real-time, operating much like a Google Doc for code.
+*   **Socket.IO Architecture:** The backend utilizes WebSocket connections (via Socket.IO) to handle bidirectional, low-latency communication.
+*   **Live Code Synchronization:** As one user types, changes are broadcasted to the room. The system uses debounced updates (500ms) to prevent network congestion while maintaining a smooth real-time feel. It also tracks and broadcasts cursor positions so users can see exactly where their teammates are looking.
+*   **Room Management & Host Controls:** Users can create isolated coding rooms with unique IDs. The creator becomes the "Host," granting them exclusive rights to change the room's programming language or terminate the session. If the host leaves, host privileges are automatically transferred.
+*   **Integrated Communication:** Rooms feature an integrated live chat system. The chat history (up to 100 messages) and code history are persisted to the database so that users joining late can instantly catch up.
+
+### 3. Video Tutorials & Admin Architecture
+*   **Educational Hub:** Users have access to a library of video tutorials focusing on algorithms and system design. The frontend utilizes `React Player` for a seamless viewing experience.
+*   **Admin Dashboard:** A robust role-based access control (RBAC) system restricts access to a dedicated Admin Panel. Admins have full CRUD (Create, Read, Update, Delete) capabilities over the platform's content.
+*   **Content Management:** Admins can create new coding problems, upload test cases, and manage video content. Video assets and files are securely stored and served via **Cloudinary**.
+
+### 4. Security & Authentication
+*   **JWT & Bcrypt:** User identities are secured using JSON Web Tokens (JWT) stored in HTTP-only cookies, protecting against XSS attacks. Passwords are cryptographically hashed using `bcrypt`.
+*   **Email Verification:** Integration with external mailers (Nodemailer/SendGrid/Resend) for OTP-based email verification, password resets, and account recovery.
+
+---
+
+## Part 2: Generative AI Integration (Google Gemini)
+
+CodeMaster heavily leverages Generative AI, acting not just as a feature, but as the platform's core pedagogical engine. It uses the **Google Gemini API** (via the `@google/genai` SDK), specifically utilizing the highly efficient `gemini-2.5-flash` model.
+
+The AI is architected to act as a **Socratic Mentor**. Strict system prompts ensure the AI never gives away direct answers, but instead guides the user to the solution. Here is a deep dive into the four distinct GenAI integrations:
+
+### A. AI Code Reviewer (`Backend/src/controllers/codeReview.js`)
+*   **The Context:** When a user writes a solution but wants feedback before submitting, or wants to know how to optimize an accepted solution.
+*   **Data Flow:** The backend sends the user's raw code, the programming language used, and the problem title/description to the Gemini model.
+*   **Prompt Engineering:** The `systemInstruction` explicitly defines the AI as an "expert code reviewer." The rules are strict: `❌ DO NOT provide the complete correct solution. ❌ DO NOT write the fixed code directly.`
+*   **Output:** The AI generates structured markdown feedback separated into specific sections: Code Analysis, Issues Found (logical flaws, edge case failures), Suggestions for Improvement (hints), and Time/Space complexity concerns.
+
+### B. Live Doubt Solver / DSA Tutor (`Backend/src/controllers/solveDoubt.js`)
+*   **The Context:** An integrated chat panel attached to the coding editor where users can converse with an AI while solving a problem.
+*   **Data Flow:** The backend passes the entire conversational message history, the problem description, the visible test cases, and the user's current code state to Gemini.
+*   **Prompt Engineering:** The AI is instructed to be an "expert Data Structures and Algorithms tutor." It evaluates the user's current approach, answers conceptual questions, explains why certain test cases are failing, and suggests alternative algorithms (e.g., "Have you considered using a two-pointer approach?").
+*   **Error Handling:** The system includes robust error handling for API quotas, specifically parsing Gemini's `429 Too Many Requests` errors to provide the user with formatted retry timers.
+
+### C. Personalized Progress Analyzer (`Backend/src/controllers/progressAnalysis.js`)
+*   **The Context:** A feature in the user dashboard that acts as a personalized learning roadmap.
+*   **Data Flow:** The backend queries the MongoDB database for the user's entire submission history. It aggregates this data into statistical metrics: total attempted, total solved, success/failure rates grouped by difficulty, and success/failure rates grouped by topic tags (e.g., Arrays, Dynamic Programming, Graphs). It also passes the titles of the last 20 solved problems and the last 10 failed problems.
+*   **Prompt Engineering:** The AI is given this raw JSON statistical data and instructed to act as a mentor evaluating actual progress. It is strictly told NOT to invent data.
+*   **Output:** The AI generates a customized report summarizing the user's strengths, pointing out specific statistical weaknesses (e.g., "You have a 60% failure rate on Dynamic Programming questions"), and recommending 2-3 specific sub-topics the user should study next based on their current skill level.
+
+### D. Automated Algorithm Video/Animation Generator (`Backend/src/controllers/algorithmAnimation.js`)
+*   **The Context:** This is the most complex integration. It transforms static algorithmic problems into dynamic, visual, interactive educational "videos" dynamically on the frontend.
+*   **Data Flow:** The user requests an explanation for a problem (e.g., "Explain Bubble Sort") and sets a difficulty level and duration.
+*   **Structured Outputs:** Unlike the other integrations that return raw text, this controller enforces a strict **JSON Schema** on the Gemini API (`responseMimeType: "application/json"` and `responseSchema`).
+*   **Prompt Engineering:** The AI is instructed to act as a "Game Master". It must gamify the algorithm explanation. For example, instead of "increment index i", it might output "The Red Scout moves to the next room."
+*   **Output Structure:** Gemini returns a complex, deterministic JSON object containing:
+    1.  `theme`: A metaphorical theme for the UI.
+    2.  `script`: A timestamped array of narration text containing emojis.
+    3.  `timeline`: An exact chronological array of visual actions the frontend UI should perform (e.g., `{ action: "swap_indices", time: 5, indices: [0, 1] }`).
+    4.  `pseudocode`: An array of canonical pseudocode steps.
+    5.  `quiz`: A dynamically generated multiple-choice quiz testing the user's understanding of the algorithm.
+*   **Execution:** The frontend parses this JSON and orchestrates DOM manipulations and CSS animations according to the AI-generated timeline, effectively creating a completely automated, AI-directed educational video.

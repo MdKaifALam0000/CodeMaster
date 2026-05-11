@@ -3,9 +3,9 @@
     flex-direction: column;
     align-items: center;
     padding: 2rem;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: #111;
     border-radius: 16px;
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(255, 69, 0, 0.2);
     min-height: 250px;
     justify-content: center;
     overflow: hidden;
@@ -100,8 +100,8 @@
 .array-caption {
     margin-top: 2rem;
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
-    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: linear-gradient(90deg, rgba(255, 69, 0, 0.2), rgba(255, 0, 60, 0.2));
+    border: 1px solid rgba(255, 69, 0, 0.3);
     border-radius: 12px;
     color: #fff;
     font-size: 1.1rem;

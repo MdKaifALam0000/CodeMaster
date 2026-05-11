@@ -20,6 +20,7 @@ const SOCKET_URL = import.meta.env.PROD
 
 export const useTeamSocket = () => {
   const socketRef = useRef(null);
+  const joinedRoomRef = useRef(null);
   const dispatch = useDispatch();
   const { currentRoom } = useSelector((state) => state.teamCoding);
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -73,6 +74,7 @@ export const useTeamSocket = () => {
 
     socket.on('disconnect', (reason) => {
       console.log('⚠️ Disconnected from Socket.IO server. Reason:', reason);
+      joinedRoomRef.current = null; // Clear joined state so we can rejoin on reconnect
       dispatch(setConnected(false));
       
       // Attempt to reconnect if disconnected unexpectedly
@@ -155,14 +157,38 @@ export const useTeamSocket = () => {
   // Socket methods
   const joinRoom = (roomId) => {
     if (socketRef.current && user) {
+      // Prevent duplicate join emissions for the same connection
+      if (joinedRoomRef.current === roomId) {
+          return;
+      }
+      joinedRoomRef.current = roomId;
+      
+      let sessionUsername = user.firstName;
+      if (currentRoom?.participants) {
+        const participant = currentRoom.participants.find(
+          p => (p.userId?._id || p.userId) === user._id
+        );
+        if (participant?.username) {
+          sessionUsername = participant.username;
+        }
+      }
+
       socketRef.current.emit('join-room', {
         roomId,
         userData: {
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: sessionUsername, // used for system message fallback
+          username: sessionUsername,
           profilePicture: user.profilePicture
         }
       });
+
+      // Synchronously set ourselves as online locally inside our own UI immediately
+      dispatch(addParticipant({
+          userId: user._id,
+          firstName: sessionUsername,
+          username: sessionUsername,
+          profilePicture: user.profilePicture
+      }));
     }
   };
 
@@ -203,16 +229,28 @@ export const useTeamSocket = () => {
 
   const sendMessage = (roomId, message) => {
     if (socketRef.current && user) {
+      
+      // Attempt to find the specific session username they chose for this room
+      let sessionUsername = user.firstName;
+      if (currentRoom?.participants) {
+        const participant = currentRoom.participants.find(
+          p => (p.userId?._id || p.userId) === user._id
+        );
+        if (participant?.username) {
+          sessionUsername = participant.username;
+        }
+      }
+
       console.log('📤 Emitting send-message:', {
         roomId,
         message,
-        username: `${user.firstName} ${user.lastName}`,
+        username: sessionUsername,
         socketConnected: socketRef.current.connected
       });
       socketRef.current.emit('send-message', {
         roomId,
         message,
-        username: `${user.firstName} ${user.lastName}`
+        username: sessionUsername
       });
     } else {
       console.log('❌ Cannot send message - missing socket or user:', {

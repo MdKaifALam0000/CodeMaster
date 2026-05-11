@@ -90,10 +90,10 @@ const Dashboard = ({ isOpen, onClose }) => {
             animate="open"
             exit="closed"
             variants={sidebarVariants}
-            className="fixed left-0 top-0 h-full w-80 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-2xl z-50 overflow-hidden"
+            className="fixed left-0 top-0 h-full w-80 bg-[#0a0a0a]/90 backdrop-blur-2xl border-r border-[#ff4500]/20 shadow-[0_0_50px_rgba(255,69,0,0.1)] z-50 overflow-hidden"
           >
             {/* Header */}
-            <div className="relative h-32 bg-gradient-to-r from-blue-600 to-purple-600 p-6">
+            <div className="relative h-32 bg-gradient-to-r from-[#ff4500] to-[#ff003c] p-6 shadow-[0_4px_20px_rgba(255,69,0,0.3)]">
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
@@ -124,8 +124,8 @@ const Dashboard = ({ isOpen, onClose }) => {
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
                       activeTab === item.id
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'text-gray-300 hover:bg-gray-700'
+                        ? 'bg-[#ff4500] text-white shadow-[0_0_15px_rgba(255,69,0,0.4)]'
+                        : 'text-gray-300 hover:bg-[#111]'
                     }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -174,12 +174,12 @@ const Dashboard = ({ isOpen, onClose }) => {
             animate={{ x: 320, opacity: 1 }}
             exit={{ x: '-100%', opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed left-0 top-0 h-full w-[calc(100%-20rem)] bg-gray-900 shadow-2xl z-40 overflow-y-auto"
+            className="fixed left-0 top-0 h-full w-[calc(100%-20rem)] bg-black shadow-2xl z-40 overflow-y-auto"
           >
             <div className="p-6">
               {loading ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff4500]"></div>
                 </div>
               ) : (
                 <AnimatePresence mode="wait">

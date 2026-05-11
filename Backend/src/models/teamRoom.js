@@ -26,6 +26,10 @@ const teamRoomSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User'
         },
+        username: {
+            type: String,
+            required: true
+        },
         joinedAt: {
             type: Date,
             default: Date.now

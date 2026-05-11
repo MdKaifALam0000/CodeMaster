@@ -50,10 +50,10 @@ const ProfileSection = ({ profile, stats }) => {
               <img
                 src={profile.profilePicture}
                 alt={profile.firstName}
-                className="w-24 h-24 rounded-full object-cover border-4 border-blue-600 shadow-lg"
+                className="w-24 h-24 rounded-full object-cover border-4 border-[#ff4500] shadow-[0_0_15px_rgba(255,69,0,0.5)]"
               />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center border-4 border-blue-600 shadow-lg">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#ff4500] to-[#ff003c] flex items-center justify-center border-4 border-[#ff4500] shadow-[0_0_15px_rgba(255,69,0,0.5)]">
                 <span className="text-white text-3xl font-bold">
                   {profile.firstName?.[0]?.toUpperCase()}
                 </span>
@@ -102,7 +102,7 @@ const ProfileSection = ({ profile, stats }) => {
                   href={profile.linkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                  className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-[#ff4500] hover:bg-[#ff003c] text-white transition-colors shadow-[0_0_10px_rgba(255,69,0,0.3)]"
                 >
                   <Linkedin className="w-4 h-4" />
                   <span className="text-sm">LinkedIn</span>
@@ -116,7 +116,7 @@ const ProfileSection = ({ profile, stats }) => {
         {profile.skills && profile.skills.length > 0 && (
           <div className="mt-6 pt-6 border-t border-gray-700">
             <h3 className="text-white font-semibold mb-3 flex items-center space-x-2">
-              <Code className="w-5 h-5 text-blue-400" />
+              <Code className="w-5 h-5 text-[#ff4500]" />
               <span>Skills</span>
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -126,7 +126,7 @@ const ProfileSection = ({ profile, stats }) => {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.05 }}
-                  className="px-3 py-1 rounded-full bg-blue-600/20 text-blue-400 text-sm font-medium border border-blue-600/30"
+                  className="px-3 py-1 rounded-full bg-[#ff4500]/20 text-[#ff4500] text-sm font-bold tracking-widest border border-[#ff4500]/30 shadow-[0_0_10px_rgba(255,69,0,0.2)]"
                 >
                   {skill}
                 </motion.span>
@@ -139,40 +139,40 @@ const ProfileSection = ({ profile, stats }) => {
       {/* Stats Grid */}
       {stats && (
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 shadow-lg">
+          <div className="bg-gradient-to-br from-[#ff4500]/80 to-[#cc3700]/80 rounded-xl p-6 shadow-[0_0_15px_rgba(255,69,0,0.3)] border border-white/5">
             <div className="flex items-center justify-between mb-2">
-              <Award className="w-8 h-8 text-blue-200" />
-              <span className="text-blue-200 text-sm font-medium">Solved</span>
+              <Award className="w-8 h-8 text-white" />
+              <span className="text-white text-sm font-bold">Solved</span>
             </div>
-            <p className="text-white text-3xl font-bold">{stats.problemsSolved}</p>
-            <p className="text-blue-200 text-sm mt-1">Problems</p>
+            <p className="text-white text-3xl font-black">{stats.problemsSolved}</p>
+            <p className="text-white/80 text-sm mt-1 uppercase tracking-wider">Problems</p>
           </div>
 
-          <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-6 shadow-lg">
+          <div className="bg-[#111]/80 border border-white/5 rounded-xl p-6 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
             <div className="flex items-center justify-between mb-2">
-              <Award className="w-8 h-8 text-green-200" />
-              <span className="text-green-200 text-sm font-medium">Accepted</span>
+              <Award className="w-8 h-8 text-emerald-500" />
+              <span className="text-emerald-500 text-sm font-bold tracking-widest uppercase">Accepted</span>
             </div>
-            <p className="text-white text-3xl font-bold">{stats.acceptedSubmissions}</p>
-            <p className="text-green-200 text-sm mt-1">Submissions</p>
+            <p className="text-white text-3xl font-black">{stats.acceptedSubmissions}</p>
+            <p className="text-gray-400 text-sm mt-1 uppercase tracking-widest text-xs">Submissions</p>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-6 shadow-lg">
+          <div className="bg-gradient-to-br from-[#ff003c]/80 to-[#cc0030]/80 rounded-xl p-6 shadow-[0_0_15px_rgba(255,0,60,0.3)] border border-white/5">
             <div className="flex items-center justify-between mb-2">
-              <Award className="w-8 h-8 text-purple-200" />
-              <span className="text-purple-200 text-sm font-medium">Total</span>
+              <Award className="w-8 h-8 text-white" />
+              <span className="text-white text-sm font-bold">Total</span>
             </div>
-            <p className="text-white text-3xl font-bold">{stats.totalSubmissions}</p>
-            <p className="text-purple-200 text-sm mt-1">Submissions</p>
+            <p className="text-white text-3xl font-black">{stats.totalSubmissions}</p>
+            <p className="text-white/80 text-sm mt-1 uppercase tracking-wider">Submissions</p>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl p-6 shadow-lg">
+          <div className="bg-[#111]/80 border border-white/5 rounded-xl p-6 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
             <div className="flex items-center justify-between mb-2">
-              <Award className="w-8 h-8 text-orange-200" />
-              <span className="text-orange-200 text-sm font-medium">Success</span>
+              <Award className="w-8 h-8 text-amber-500" />
+              <span className="text-amber-500 text-sm font-bold tracking-widest uppercase">Success</span>
             </div>
-            <p className="text-white text-3xl font-bold">{stats.successRate}%</p>
-            <p className="text-orange-200 text-sm mt-1">Rate</p>
+            <p className="text-white text-3xl font-black">{stats.successRate}%</p>
+            <p className="text-gray-400 text-sm mt-1 uppercase tracking-widest text-xs">Rate</p>
           </div>
         </motion.div>
       )}
