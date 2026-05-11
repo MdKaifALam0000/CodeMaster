@@ -317,24 +317,26 @@ const TeamCodingPage = () => {
   const isHost = currentRoom.host._id === user._id;
 
   return (
-    <div className="h-screen flex flex-col bg-[#000000] text-gray-200 font-sans">
+    <div className="h-screen flex flex-col bg-[#000000]">
       {/* Header */}
-      <div className="navbar bg-[#0a0a0a] border-b border-[#ff4500]/20 px-4 shadow-[0_4px_20px_rgba(255,69,0,0.1)]">
-        <div className="flex-1">
-          <h1 className="text-xl font-black tracking-widest text-white">{currentRoom.roomName}</h1>
-          <div className={`px-2 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase ${getDifficultyColor(currentRoom.problemId.difficulty)} ml-3`}>
+      <div className="flex items-center justify-between bg-[#0a0a0a] border-b border-[#ff4500]/20 px-4 py-2 shadow-[0_4px_20px_rgba(255,69,0,0.1)]">
+        {/* Left: Room name + tags */}
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-xl font-black tracking-widest text-white truncate">{currentRoom.roomName}</h1>
+          <div className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase ${getDifficultyColor(currentRoom.problemId.difficulty)}`}>
             {currentRoom.problemId.difficulty}
           </div>
-          <div className="px-2 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase bg-[#ff4500]/20 text-[#ff4500] border border-[#ff4500]/30 ml-2 shadow-[0_0_10px_rgba(255,69,0,0.2)]">{currentRoom.problemId.tags}</div>
+          <div className="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase bg-[#ff4500]/20 text-[#ff4500] border border-[#ff4500]/30 shadow-[0_0_10px_rgba(255,69,0,0.2)]">{currentRoom.problemId.tags}</div>
           {isHost && (
-            <div className="px-2 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase bg-[#ff9800]/20 text-[#ff9800] border border-[#ff9800]/30 ml-2 flex items-center gap-1">
+            <div className="flex-shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase bg-[#ff9800]/20 text-[#ff9800] border border-[#ff9800]/30">
               <Crown className="w-3 h-3" />
               Host
             </div>
           )}
         </div>
 
-        <div className="flex-none gap-2">
+        {/* Right: Status + Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           {/* Connection Status */}
           <div className={`px-2 py-1 rounded-full text-xs font-bold flex items-center gap-2 ${connected ? 'bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30' : 'bg-[#ff003c]/20 text-[#ff003c] border border-[#ff003c]/30'}`}>
             <div className={`w-2 h-2 rounded-full ${connected ? 'bg-[#10b981] shadow-[0_0_5px_#10b981]' : 'bg-[#ff003c] shadow-[0_0_5px_#ff003c]'}`}></div>
@@ -347,13 +349,13 @@ const TeamCodingPage = () => {
           )}
 
           {/* Copy Room Link */}
-          <button className="btn btn-sm bg-[#111] hover:bg-[#222] border border-gray-700 text-gray-300 gap-2" onClick={copyRoomLink}>
+          <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-[#111] hover:bg-[#222] border border-gray-700 text-gray-300 transition-all" onClick={copyRoomLink}>
             {copied ? <Check className="w-4 h-4 text-[#10b981]" /> : <Copy className="w-4 h-4 text-[#ff4500]" />}
             {copied ? <span className="text-[#10b981]">Copied!</span> : 'Share'}
           </button>
 
           {/* Leave Room */}
-          <button className="btn btn-sm bg-[#ff003c]/20 hover:bg-[#ff003c] border border-[#ff003c]/50 text-white gap-2 transition-all" onClick={handleLeaveRoom}>
+          <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-[#ff003c]/20 hover:bg-[#ff003c] border border-[#ff003c]/50 text-white transition-all" onClick={handleLeaveRoom}>
             <LogOut className="w-4 h-4" />
             Leave
           </button>
@@ -470,7 +472,7 @@ const TeamCodingPage = () => {
         {/* Right Sidebar - Tabbed Interface */}
         <div className="w-80 border-l border-[#ff4500]/20 flex flex-col min-h-0 bg-[#0a0a0a]">
           {/* Tabs */}
-          <div className="flex bg-[#111] p-2 grid grid-cols-4 gap-1 border-b border-gray-800">
+          <div className="grid grid-cols-4 gap-1 bg-[#111] p-2 border-b border-gray-800">
             <button
               className={`py-1.5 rounded-lg text-sm font-bold flex items-center justify-center transition-all ${activeRightTab === 'participants' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
               onClick={() => setActiveRightTab('participants')}
