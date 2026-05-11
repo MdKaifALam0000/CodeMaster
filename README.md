@@ -1,3 +1,4 @@
+
 # CodeMaster - Full-Stack Coding Platform
 
 A comprehensive coding platform with problem-solving capabilities, AI assistance, video tutorials, and administrative features.
@@ -7,7 +8,7 @@ A comprehensive coding platform with problem-solving capabilities, AI assistance
 ---
 
 Here’s a snapshot of the **CodeMaster Dashboard**:
- /<img width="952" height="436" alt="Screenshot 2026-01-05 204523" src="https://github.com/user-attachments/assets/95376b82-a407-488e-896e-6cacd4d8f0f4" />
+ /<img width="951" height="440" alt="Screenshot 2026-05-11 130954" src="https://github.com/user-attachments/assets/dd91d8c8-610a-4be4-b932-ba63390c22e1" />
 
 ---
 
