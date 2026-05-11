@@ -19,66 +19,42 @@ import TeamCodingPage from "./pages/TeamCodingPage";
 import Leaderboard from "./pages/Leaderboard";
 import ForgotPassword from "./pages/ForgotPassword";
 
-// Mini spinner for protected routes that are still checking auth
-const AuthLoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <span className="loading loading-spinner loading-lg"></span>
-  </div>
-);
-
 function App() {
 
   const dispatch = useDispatch();
   const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
 
-  // check initial authentication (runs in background — does NOT block rendering)
+  // check initial authentication
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  // Only protected routes wait for the auth check.
-  // The landing page / public pages render IMMEDIATELY.
-  const ProtectedRoute = ({ element, fallback = <Navigate to="/login" /> }) => {
-    if (loading) return <AuthLoadingSpinner />;
-    return isAuthenticated ? element : fallback;
-  };
-
-  const GuestRoute = ({ element, redirectTo = "/home" }) => {
-    if (loading) return <AuthLoadingSpinner />;
-    return isAuthenticated ? <Navigate to={redirectTo} /> : element;
-  };
-
-  const AdminRoute = ({ element }) => {
-    if (loading) return <AuthLoadingSpinner />;
-    return isAuthenticated && user?.role === 'admin' ? element : <Navigate to="/" />;
-  };
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <span className="loading loading-spinner loading-lg"></span>
+    </div>;
+  }
 
   return (
     <>
       <Routes>
-        {/* Public — renders IMMEDIATELY even during auth check */}
-        <Route path="/" element={isAuthenticated ? <Navigate to="/home" /> : <LandingPage />} />
-        <Route path="/problem/:problemId" element={<ProblemPage />} />
+
+        <Route path="/" element={isAuthenticated ? <Navigate to="/home" /> : <LandingPage />}></Route>
+        <Route path="/home" element={isAuthenticated ? <Homepage /> : <Navigate to="/" />}></Route>
+        <Route path="/dashboard" element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />}></Route>
+        <Route path="/leaderboard" element={isAuthenticated ? <Leaderboard /> : <Navigate to="/login" />}></Route>
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/home" /> : <Login></Login>}></Route>
+        <Route path="/signup" element={isAuthenticated ? <Navigate to="/home" /> : <Signup></Signup>}></Route>
+        <Route path="/admin" element={isAuthenticated && user?.role === 'admin' ? <Admin /> : <Navigate to="/" />} />
+        <Route path="/admin/create" element={isAuthenticated && user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/" />} />
+        <Route path="/admin/delete" element={isAuthenticated && user?.role === 'admin' ? <AdminDelete /> : <Navigate to="/" />} />
+        <Route path="/admin/video" element={isAuthenticated && user?.role === 'admin' ? <AdminVideo /> : <Navigate to="/" />} />
+        <Route path="/admin/upload/:problemId" element={isAuthenticated && user?.role === 'admin' ? <AdminUpload /> : <Navigate to="/" />} />
+        <Route path="/problem/:problemId" element={<ProblemPage />}></Route>
+        <Route path="/admin/update" element={isAuthenticated && user?.role === 'admin' ? <AdminUpdate /> : <Navigate to="/" />} />
+        <Route path="/team-coding" element={isAuthenticated ? <TeamCodingLobby /> : <Navigate to="/login" />} />
         <Route path="/team-coding/room/:roomId" element={<TeamCodingPage />} />
-
-        {/* Guest-only routes */}
-        <Route path="/login" element={<GuestRoute element={<Login />} />} />
-        <Route path="/signup" element={<GuestRoute element={<Signup />} />} />
-        <Route path="/forgot-password" element={<GuestRoute element={<ForgotPassword />} />} />
-
-        {/* Protected routes */}
-        <Route path="/home" element={<ProtectedRoute element={<Homepage />} />} />
-        <Route path="/dashboard" element={<ProtectedRoute element={<DashboardPage />} />} />
-        <Route path="/leaderboard" element={<ProtectedRoute element={<Leaderboard />} />} />
-        <Route path="/team-coding" element={<ProtectedRoute element={<TeamCodingLobby />} />} />
-
-        {/* Admin routes */}
-        <Route path="/admin" element={<AdminRoute element={<Admin />} />} />
-        <Route path="/admin/create" element={<AdminRoute element={<AdminPanel />} />} />
-        <Route path="/admin/delete" element={<AdminRoute element={<AdminDelete />} />} />
-        <Route path="/admin/update" element={<AdminRoute element={<AdminUpdate />} />} />
-        <Route path="/admin/video" element={<AdminRoute element={<AdminVideo />} />} />
-        <Route path="/admin/upload/:problemId" element={<AdminRoute element={<AdminUpload />} />} />
+        <Route path="/forgot-password" element={isAuthenticated ? <Navigate to="/home" /> : <ForgotPassword />} />
       </Routes>
     </>
   )
