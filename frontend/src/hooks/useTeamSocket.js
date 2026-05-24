@@ -279,6 +279,13 @@ export const useTeamSocket = () => {
     }
   };
 
+  const requestRoomState = (roomId) => {
+    if (socketRef.current) {
+      console.log('📤 Emitting request-room-state for roomId:', roomId);
+      socketRef.current.emit('request-room-state', { roomId });
+    }
+  };
+
   return {
     socket: socketRef.current,
     connected: useSelector((state) => state.teamCoding.connected),
@@ -289,6 +296,7 @@ export const useTeamSocket = () => {
     changeLanguage,
     sendMessage,
     sendTestResults,
-    sendTyping
+    sendTyping,
+    requestRoomState
   };
 };

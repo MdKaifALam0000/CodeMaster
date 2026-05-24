@@ -236,6 +236,29 @@ module.exports = (io) => {
             }
         });
 
+        // Handle request to sync room state manually (Refresh)
+        socket.on('request-room-state', async ({ roomId }) => {
+            try {
+                const room = await TeamRoom.findOne({ roomId })
+                    .populate('participants.userId', 'firstName lastName profilePicture');
+
+                if (!room) {
+                    socket.emit('error', { message: 'Room not found' });
+                    return;
+                }
+
+                // Send current room state to the user who requested it
+                socket.emit('room-state', {
+                    code: room.code,
+                    language: room.language,
+                    participants: room.participants,
+                    chatHistory: room.chatHistory.slice(-50)
+                });
+            } catch (err) {
+                console.error('Error syncing room state:', err);
+            }
+        });
+
         // Handle code execution results
         socket.on('code-run-result', async ({ roomId, results }) => {
             try {

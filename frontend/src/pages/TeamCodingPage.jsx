@@ -13,7 +13,8 @@ import {
   Copy,
   Check,
   Crown,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import { useTeamSocket } from '../hooks/useTeamSocket';
 import { getRoomById, leaveRoom as leaveRoomAction } from '../teamCodingSlice';
@@ -41,7 +42,8 @@ const TeamCodingPage = () => {
     sendCodeChange,
     changeLanguage,
     sendMessage,
-    sendTestResults
+    sendTestResults,
+    requestRoomState
   } = useTeamSocket();
 
   const [localCode, setLocalCode] = useState('');
@@ -53,6 +55,13 @@ const TeamCodingPage = () => {
   const [activeMainTab, setActiveMainTab] = useState('editor');
   const [copied, setCopied] = useState(false);
   const chatEndRef = useRef(null);
+
+  const handleRefreshState = () => {
+    if (roomId) {
+      console.log('🔄 Manually refreshing room state...');
+      requestRoomState(roomId);
+    }
+  };
 
   // Fetch room data and join
   useEffect(() => {
@@ -527,7 +536,17 @@ const TeamCodingPage = () => {
           {/* Participants Tab */}
           {activeRightTab === 'participants' && (
             <div className="flex-1 overflow-y-auto p-4">
-              <h3 className="font-semibold mb-4">Participants ({participants.length})</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold">Participants ({participants.length})</h3>
+                <button
+                  onClick={handleRefreshState}
+                  className="p-1.5 rounded-lg bg-[#111] hover:bg-[#222] border border-gray-700 text-gray-400 hover:text-[#ff4500] transition-all flex items-center justify-center gap-1.5 text-xs font-bold shadow-[0_0_10px_rgba(255,69,0,0.05)]"
+                  title="Sync room state"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Sync
+                </button>
+              </div>
               <div className="space-y-2">
                 {participants.map((participant, index) => (
                   <motion.div
@@ -571,7 +590,17 @@ const TeamCodingPage = () => {
           {/* Chat Tab */}
           {activeRightTab === 'chat' && (
             <div className="flex-1 flex flex-col min-h-0">
-              <h3 className="font-semibold p-4 pb-2">Team Chat</h3>
+              <div className="flex justify-between items-center p-4 pb-2 border-b border-gray-800/30">
+                <h3 className="font-semibold">Team Chat</h3>
+                <button
+                  onClick={handleRefreshState}
+                  className="p-1.5 rounded-lg bg-[#111] hover:bg-[#222] border border-gray-700 text-gray-400 hover:text-[#ff4500] transition-all flex items-center justify-center gap-1.5 text-xs font-bold shadow-[0_0_10px_rgba(255,69,0,0.05)]"
+                  title="Sync room state"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Sync
+                </button>
+              </div>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 pt-2 space-y-3">
                 {chatMessages.map((msg, index) => (
