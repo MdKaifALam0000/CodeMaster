@@ -13,7 +13,10 @@ import {
   ChevronRight,
   Menu,
   X,
-  Hexagon
+  Hexagon,
+  User,
+  LogOut,
+  Sparkles
 } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 import { logoutUser } from '../authSlice';
@@ -406,6 +409,90 @@ function Homepage() {
             </button>
           </div>
         </motion.nav>
+
+        {/* Mobile Menu Dropdown */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 shadow-[0_10px_30px_-10px_rgba(255,69,0,0.3)] z-50 pointer-events-auto"
+            >
+              {/* Solved Problems Stat */}
+              <div className="flex items-center justify-between px-3 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                <span className="text-xs font-bold text-emerald-400">PROGRESS</span>
+                <span className="text-xs font-black text-emerald-400">{solvedCount}/{totalProblems} Solved</span>
+              </div>
+
+              {/* Leaderboard Link */}
+              <NavLink
+                to="/leaderboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 text-sm font-bold tracking-wider text-gray-300 hover:text-[#ff4500] transition-colors border-b border-white/5"
+              >
+                <Trophy className="w-4 h-4 text-[#ff4500]" />
+                LEADERBOARD
+              </NavLink>
+
+              {/* Team Coding Link */}
+              {user && (
+                <NavLink
+                  to="/team-coding"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 text-sm font-bold tracking-wider text-gray-300 hover:text-[#ff4500] transition-colors border-b border-white/5"
+                >
+                  <Users className="w-4 h-4 text-[#ff4500]" />
+                  TEAM CODING
+                </NavLink>
+              )}
+
+              {/* Profile Link or Login */}
+              {user ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleOpenDashboard('profile');
+                    }}
+                    className="flex items-center gap-3 px-3 py-2 text-sm font-bold tracking-wider text-gray-300 hover:text-[#ff4500] text-left transition-colors border-b border-white/5"
+                  >
+                    <User className="w-4 h-4 text-[#ff4500]" />
+                    MY PROFILE
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleOpenAIModal();
+                    }}
+                    className="flex items-center gap-3 px-3 py-2 text-sm font-bold tracking-wider text-gray-300 hover:text-[#ff4500] text-left transition-colors border-b border-white/5"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#ff4500]" />
+                    AI ANALYSIS
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-3 px-3 py-2 text-sm font-bold tracking-wider text-[#ff003c] text-left transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 text-[#ff003c]" />
+                    LOGOUT
+                  </button>
+                </>
+              ) : (
+                <NavLink
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center py-2.5 bg-[#ff4500] text-white text-sm font-bold tracking-widest rounded-xl shadow-[0_0_15px_rgba(255,69,0,0.3)]"
+                >
+                  LOGIN
+                </NavLink>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="relative z-10">

@@ -134,7 +134,7 @@ const TeamCodingLobby = () => {
       <div className="container mx-auto px-6 py-10 relative z-10">
 
         {/* Top Bar: Brand & Create Button (Replaces Header) */}
-        <div className="flex justify-between items-center mb-10">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-10">
           <NavLink to="/" className="flex items-center gap-3 group">
             <div className="bg-[#111]/50 p-1.5 rounded-lg border border-gray-700/50 group-hover:border-[#ff4500]/50 transition-colors shadow-[0_0_10px_rgba(255,69,0,0)] group-hover:shadow-[0_0_10px_rgba(255,69,0,0.3)]">
               <Code2 className="w-6 h-6 text-[#ff4500]" />

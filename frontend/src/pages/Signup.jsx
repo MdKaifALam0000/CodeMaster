@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
+import toast from 'react-hot-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
@@ -46,10 +47,12 @@ export default function Signup() {
     try {
       await axiosClient.post('/user/generate-otp', { emailId: data.emailId });
       setShowOTPModal(true);
+      toast.success("Security OTP sent to your email!");
     } catch (err) {
       console.error(err);
-      setOtpError(err.response?.data?.error || "Failed to send OTP. Please try again.");
-      alert(err.response?.data?.error || "Failed to send OTP");
+      const errorMsg = err.response?.data?.error || "Failed to send OTP. Please try again.";
+      setOtpError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setOtpLoading(false);
     }
@@ -61,9 +64,11 @@ export default function Signup() {
       .unwrap()
       .then(() => {
         setShowOTPModal(false);
+        toast.success("Profile created successfully! Access Granted.");
       })
       .catch((err) => {
         setOtpError(err || "Verification failed");
+        toast.error(err || "OTP Verification Failed");
       });
   };
 
@@ -71,9 +76,10 @@ export default function Signup() {
     setOtpError(null);
     try {
       await axiosClient.post('/user/generate-otp', { emailId: formData.emailId });
-      alert("OTP Resent Successfully!");
+      toast.success("OTP Resent Successfully!");
     } catch (err) {
       setOtpError("Failed to resend OTP");
+      toast.error("Failed to resend OTP");
     }
   };
 

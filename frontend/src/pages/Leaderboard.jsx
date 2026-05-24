@@ -100,7 +100,7 @@ const Leaderboard = () => {
                 ) : (
                     <>
                         {/* Podium Section - Top 3 */}
-                        <div className="flex flex-col md:flex-row justify-center items-end gap-6 mb-16 min-h-[300px]">
+                        <div className="flex flex-col md:flex-row justify-center items-center md:items-end gap-6 mb-16 min-h-[300px]">
                             {/* 2nd Place */}
                             {topThree[1] && <PodiumCard user={topThree[1]} rank={2} delay={0.2} />}
 
@@ -113,7 +113,7 @@ const Leaderboard = () => {
 
                         {/* List Section - Rest */}
                         <div className="max-w-4xl mx-auto bg-[#111]/80 backdrop-blur-xl border border-gray-800 rounded-3xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                            <div className="grid grid-cols-[80px_1fr_150px] gap-4 p-4 border-b border-gray-800 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div className="grid grid-cols-[50px_1fr_100px] md:grid-cols-[80px_1fr_150px] gap-4 p-4 border-b border-gray-800 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <div className="text-center">Rank</div>
                                 <div>User</div>
                                 <div className="text-center">Solved</div>
@@ -205,7 +205,7 @@ const ListRow = ({ user, rank, delay }) => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay }}
-            className="grid grid-cols-[80px_1fr_150px] gap-4 p-4 items-center hover:bg-gray-800/50 transition-colors group"
+            className="grid grid-cols-[50px_1fr_100px] md:grid-cols-[80px_1fr_150px] gap-4 p-4 items-center hover:bg-gray-800/50 transition-colors group"
         >
             <div className="flex justify-center">
                 <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800/50 text-gray-400 font-mono font-medium group-hover:bg-gray-700/50 group-hover:text-white transition-colors">

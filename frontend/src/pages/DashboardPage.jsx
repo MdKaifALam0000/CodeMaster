@@ -12,11 +12,13 @@ import {
     XCircle,
     Clock,
     Code2,
-    ExternalLink
+    ExternalLink,
+    Menu
 } from 'lucide-react';
 
 const DashboardPage = () => {
     const [activeTab, setActiveTab] = useState('overview');
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const dispatch = useDispatch();
     const { isAuthenticated } = useSelector((state) => state.auth);
     const { profile, stats, progress, loading } = useSelector((state) => state.dashboard);
@@ -72,7 +74,7 @@ const DashboardPage = () => {
                                     {progress?.solvedProblems?.length || 0} problems solved
                                 </span>
                             </div>
-                            <div className="section-content" style={{ padding: 0 }}>
+                            <div className="section-content overflow-x-auto" style={{ padding: 0 }}>
                                 {progress?.solvedProblems && progress.solvedProblems.length > 0 ? (
                                     <table className="submissions-table">
                                         <thead>
@@ -148,7 +150,7 @@ const DashboardPage = () => {
                                     {stats?.totalSubmissions || 0} total submissions
                                 </span>
                             </div>
-                            <div className="section-content" style={{ padding: 0 }}>
+                            <div className="section-content overflow-x-auto" style={{ padding: 0 }}>
                                 {progress?.recentSubmissions && progress.recentSubmissions.length > 0 ? (
                                     <table className="submissions-table">
                                         <thead>
@@ -229,12 +231,21 @@ const DashboardPage = () => {
 
     return (
         <div className="dashboard-container">
-            <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+            <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <main className="dashboard-main">
-                <header className="dashboard-header">
-                    <h1>{title}</h1>
-                    <p>{subtitle}</p>
+                <header className="dashboard-header flex items-center gap-4">
+                    <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
+                        aria-label="Open menu"
+                    >
+                        <Menu className="w-6 h-6" />
+                    </button>
+                    <div>
+                        <h1>{title}</h1>
+                        <p>{subtitle}</p>
+                    </div>
                 </header>
 
                 <div className="dashboard-content">

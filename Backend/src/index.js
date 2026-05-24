@@ -56,6 +56,11 @@ console.log('🔌 Socket.IO initialized with CORS:', corsOptions.origin);
 app.use(express.json());
 app.use(cookieParser());
 
+// Lightweight health-check endpoint to keep backend warm on free tiers
+app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+});
+
 // Routes
 app.use('/user', authrouter);
 app.use('/problem', problemRouter);
@@ -80,7 +85,7 @@ httpServer.listen(process.env.PORT || 3000, () => {
 const initializeConnection = async () => {
     try {
         await Promise.all([main(), redisClient.connect()]);
-        console.log("✅ MongoDB and Redis connected successfully!");
+        console.log(" MongoDB and Redis connected successfully!");
     } catch (err) {
         console.error(' Error connecting to the database or Redis:', err);
     }

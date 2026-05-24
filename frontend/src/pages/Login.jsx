@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch, useSelector } from 'react-redux';
@@ -29,8 +30,10 @@ export default function Login() {
   const onLoginSubmit = async (data) => {
     try {
       await dispatch(loginUser(data)).unwrap();
+      toast.success("Access Granted! Connection Secure. 🌐");
     } catch (err) {
       console.error("Login failed:", err);
+      toast.error(err || "Authentication Failed. Please check credentials.");
     }
   };
 

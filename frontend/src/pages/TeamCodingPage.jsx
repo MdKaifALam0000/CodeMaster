@@ -50,6 +50,7 @@ const TeamCodingPage = () => {
   const [runResult, setRunResult] = useState(null);
   const [submitResult, setSubmitResult] = useState(null);
   const [activeRightTab, setActiveRightTab] = useState('participants');
+  const [activeMainTab, setActiveMainTab] = useState('editor');
   const [copied, setCopied] = useState(false);
   const chatEndRef = useRef(null);
 
@@ -319,7 +320,7 @@ const TeamCodingPage = () => {
   return (
     <div className="h-screen flex flex-col bg-[#000000]">
       {/* Header */}
-      <div className="flex items-center justify-between bg-[#0a0a0a] border-b border-[#ff4500]/20 px-4 py-2 shadow-[0_4px_20px_rgba(255,69,0,0.1)]">
+      <div className="flex flex-col md:flex-row items-center justify-between bg-[#0a0a0a] border-b border-[#ff4500]/20 px-4 py-3 gap-3 md:gap-0 shadow-[0_4px_20px_rgba(255,69,0,0.1)] shrink-0">
         {/* Left: Room name + tags */}
         <div className="flex items-center gap-2 min-w-0">
           <h1 className="text-xl font-black tracking-widest text-white truncate">{currentRoom.roomName}</h1>
@@ -362,10 +363,44 @@ const TeamCodingPage = () => {
         </div>
       </div>
 
+      {/* Mobile Tab Bar */}
+      <div className="flex lg:hidden bg-[#0d0d0d] border-b border-[#ff4500]/20 p-2 justify-around items-center shrink-0">
+        <button
+          onClick={() => setActiveMainTab('problem')}
+          className={`flex-1 py-2 text-center text-xs font-bold tracking-widest uppercase rounded-lg mx-1 transition-all ${
+            activeMainTab === 'problem'
+              ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]'
+              : 'text-gray-400 hover:text-white bg-[#111]'
+          }`}
+        >
+          Problem
+        </button>
+        <button
+          onClick={() => setActiveMainTab('editor')}
+          className={`flex-1 py-2 text-center text-xs font-bold tracking-widest uppercase rounded-lg mx-1 transition-all ${
+            activeMainTab === 'editor'
+              ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]'
+              : 'text-gray-400 hover:text-white bg-[#111]'
+          }`}
+        >
+          Editor
+        </button>
+        <button
+          onClick={() => setActiveMainTab('room')}
+          className={`flex-1 py-2 text-center text-xs font-bold tracking-widest uppercase rounded-lg mx-1 transition-all ${
+            activeMainTab === 'room'
+              ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]'
+              : 'text-gray-400 hover:text-white bg-[#111]'
+          }`}
+        >
+          Room Chat
+        </button>
+      </div>
+
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden bg-[#000000]">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-[#000000]">
         {/* Left Sidebar - Problem Description */}
-        <div className="w-1/4 border-r border-[#ff4500]/20 flex flex-col bg-[#0a0a0a]">
+        <div className={`w-full lg:w-1/4 border-b lg:border-b-0 lg:border-r border-[#ff4500]/20 flex flex-col bg-[#0a0a0a] ${activeMainTab === 'problem' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="p-4 border-b border-[#ff4500]/20">
             <h2 className="text-lg font-black tracking-wider text-white">{currentRoom.problemId.title}</h2>
           </div>
@@ -400,7 +435,7 @@ const TeamCodingPage = () => {
         </div>
 
         {/* Center - Code Editor */}
-        <div className="flex-1 flex flex-col bg-[#000000]">
+        <div className={`w-full lg:flex-1 flex flex-col bg-[#000000] ${activeMainTab === 'editor' ? 'flex' : 'hidden lg:flex'}`}>
           {/* Language Selector */}
           <div className="flex justify-between items-center p-3 border-b border-[#ff4500]/20 bg-[#0a0a0a]">
             <div className="flex gap-2">
@@ -470,7 +505,7 @@ const TeamCodingPage = () => {
         </div>
 
         {/* Right Sidebar - Tabbed Interface */}
-        <div className="w-80 border-l border-[#ff4500]/20 flex flex-col min-h-0 bg-[#0a0a0a]">
+        <div className={`w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-[#ff4500]/20 flex flex-col min-h-0 bg-[#0a0a0a] ${activeMainTab === 'room' ? 'flex' : 'hidden lg:flex'}`}>
           {/* Tabs */}
           <div className="grid grid-cols-4 gap-1 bg-[#111] p-2 border-b border-gray-800">
             <button

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { Code2, Sparkles, Trophy, Cpu, Globe, Crosshair, Hexagon, Zap, ArrowRight, Github, Twitter, Linkedin, Menu, X } from 'lucide-react';
 import ImageSequenceCanvas from '../components/ImageSequenceCanvas';
 
@@ -95,6 +95,38 @@ const LandingPage = () => {
                         {mobileMenuOpen ? <X /> : <Menu />}
                     </button>
                 </div>
+
+                {/* Mobile Menu Dropdown */}
+                <AnimatePresence>
+                    {mobileMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="md:hidden bg-black/95 backdrop-blur-2xl border-t border-white/5 px-6 py-6 flex flex-col gap-4 shadow-[0_10px_20px_rgba(255,69,0,0.1)]"
+                        >
+                            <Link 
+                                to="/login" 
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="text-sm font-medium tracking-wide text-gray-400 hover:text-[#ff4500] transition-colors py-2 border-b border-white/5"
+                            >
+                                LOGIN
+                            </Link>
+                            <Link 
+                                to="/signup"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="w-full mt-2"
+                            >
+                                <button className="w-full relative px-6 py-2.5 rounded-full overflow-hidden group bg-transparent border border-[#ff4500]/50 hover:border-[#ff4500] transition-all duration-300">
+                                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#ff4500]/20 to-[#ff003c]/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                                    <span className="relative text-sm font-bold tracking-wide text-[#ff4500] group-hover:text-white transition-colors duration-300 flex items-center justify-center gap-2">
+                                        <Zap className="w-4 h-4" /> INITIALIZE
+                                    </span>
+                                </button>
+                            </Link>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </motion.nav>
 
             {/* Hero Section */}

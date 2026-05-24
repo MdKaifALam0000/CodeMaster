@@ -1,0 +1,35 @@
+# Summary of AI Integration in CodeMaster
+
+CodeMaster utilizes Generative AI as a pedagogical engine, primarily focusing on providing a mentored learning experience rather than simply giving away answers. The integration spans multiple features and incorporates advanced architectures for cost, speed, and security.
+
+## 1. AI Code Reviewer (The Socratic Mentor)
+*   **Location:** `Backend/src/controllers/codeReview.js`
+*   **Functionality:** Reviews student code requests before submission.
+*   **Prompt Engineering:** Enforces "Pessimistic Guardrails" (e.g., explicitly instructed NOT to provide the complete correct solution or write fixed code).
+*   **Context Provided:** Language, problem title, problem description, and raw code.
+*   **Output:** Structured Markdown including Code Analysis, Issues Found, Suggestions/Hints, and Time/Space Complexity.
+
+## 2. Live Doubt Solver (Contextual Pair Programmer / DSA Tutor)
+*   **Location:** `Backend/src/controllers/solveDoubt.js`
+*   **Functionality:** A real-time chat interface attached to the IDE for immediate problem-solving.
+*   **Context Provided:** The AI receives the entire current state of the IDE (start code, visible test cases, user's progress) and full chat history.
+*   **Persona:** Locked into a "DSA Tutor" persona. It redirects any non-coding questions back to the problem at hand, analyzing exact variable states to suggest algorithmic shifts.
+
+## 3. Algorithm Animation Generator (The Game Master)
+*   **Location:** `Backend/src/controllers/algorithmAnimation.js` & `AlgorithmAnimator.jsx`
+*   **Functionality:** Transforms text-based questions or theoretical concepts into full visual, interactive animations.
+*   **Output Formatting:** Enforces a strict JSON `responseSchema` containing a theme (metaphor), a chronological timeline of UI commands (e.g., `swap_indices`), a narration script with emojis, and pseudocode.
+*   **Integration:** The generated script is synchronized with the browser's native Web Speech API (Text-To-Speech), dynamically stretching the animation timeline to match the voice.
+
+## 4. Personalized Progress Analyzer (The Data Scientist)
+*   **Location:** `Backend/src/controllers/progressAnalysis.js`
+*   **Functionality:** Acts as a data analyst on the user's dashboard.
+*   **Context Provided:** Analyzes raw database statistics from MongoDB (total attempts, success rates by difficulty and tags, recent successes/failures).
+*   **Output:** Generates a personalized study roadmap identifying specific weak topics. It follows strict "Anti-Hallucination Rules" to ensure it only references problems actually present in the database.
+
+## 5. Advanced AI Architecture & Security
+*   **Technology Stack:** Uses `@google/generative-ai` with `gemini-2.5-flash` for high speed/long context, and also utilizes the OpenRouter API (`google/gemini-2.0-flash-lite-preview-02-05:free`) to manage rate limits and billing.
+*   **Local RAG (Retrieval-Augmented Generation):** To answer project-wide questions without exceeding token limits, a background service indexes the codebase into a "Code Map". Semantic search is used to send only the relevant 5% of the codebase to the LLM.
+*   **Adversarial Filtering Proxy:** An AI security guardrail middleware uses regex and lightweight classification to check for "Topic Drift" and prevent Prompt Injection. It kills non-coding requests before they reach the expensive Gemini API. System instructions are also hardened using XML delimiters.
+*   **Automated E2E AI Testing:** In the CI/CD pipeline, an "Attacker LLM" tries to trick the CodeMaster AI into giving solutions. If it fails the guardrail test, deployment is automatically aborted.
+*   **Reliability:** Implements quota management (429 errors), safety filtering (403/400 errors), and graceful degradation to maintain user engagement when services are unavailable.

@@ -9,10 +9,11 @@ import {
     LogOut,
     Home,
     Trophy,
-    Flame
+    Flame,
+    X
 } from 'lucide-react';
 
-const DashboardSidebar = ({ activeTab, onTabChange }) => {
+const DashboardSidebar = ({ activeTab, onTabChange, isOpen, onClose }) => {
     const { user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const location = useLocation();
@@ -29,7 +30,15 @@ const DashboardSidebar = ({ activeTab, onTabChange }) => {
     ];
 
     return (
-        <aside className="dashboard-sidebar">
+        <aside className={`dashboard-sidebar ${isOpen ? 'open' : ''}`}>
+            {/* Close button on mobile */}
+            <button 
+                onClick={onClose}
+                className="absolute top-4 right-4 lg:hidden p-2 text-gray-500 hover:text-white transition-colors"
+                aria-label="Close menu"
+            >
+                <X className="w-5 h-5" />
+            </button>
             {/* Brand */}
             <div className="sidebar-header">
                 <NavLink to="/home" className="sidebar-brand">
@@ -63,7 +72,10 @@ const DashboardSidebar = ({ activeTab, onTabChange }) => {
                     return (
                         <button
                             key={item.id}
-                            onClick={() => onTabChange(item.id)}
+                            onClick={() => {
+                                onTabChange(item.id);
+                                if (onClose) onClose();
+                            }}
                             className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
                         >
                             <Icon />

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import axiosClient from "../utils/axiosClient";
 import { Send, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 
 function ChatAI({ problem }) {
@@ -94,7 +95,33 @@ function ChatAI({ problem }) {
                         <div className={`p-4 rounded-lg max-w-lg shadow-md transition-transform duration-300 text-sm leading-relaxed
                             ${msg.role === "user" ? "bg-[#ff4500] text-white rounded-br-none shadow-[0_0_10px_rgba(255,69,0,0.3)]" : "bg-[#111] text-gray-200 rounded-bl-none border border-gray-800"}`}
                         >
-                            <p className="whitespace-pre-wrap">{msg.parts[0].text}</p>
+                            {msg.role === "user" ? (
+                                <p className="whitespace-pre-wrap">{msg.parts[0].text}</p>
+                            ) : (
+                                <div className="prose prose-invert max-w-none text-gray-300">
+                                    <ReactMarkdown
+                                        components={{
+                                            h1: ({ node, ...props }) => <h1 className="text-base font-black tracking-widest text-[#ff4500] uppercase mb-2 mt-4 border-b border-[#ff4500]/20 pb-1" {...props} />,
+                                            h2: ({ node, ...props }) => <h2 className="text-sm font-black tracking-wider text-[#ff9800] uppercase mb-2 mt-3" {...props} />,
+                                            h3: ({ node, ...props }) => <h3 className="text-xs font-bold text-[#ff4500] mb-1 mt-2" {...props} />,
+                                            p: ({ node, ...props }) => <p className="mb-3 text-gray-300 leading-relaxed" {...props} />,
+                                            ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-3 space-y-1 text-gray-300" {...props} />,
+                                            ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-3 space-y-1 text-gray-300" {...props} />,
+                                            li: ({ node, ...props }) => <li className="text-gray-300" {...props} />,
+                                            strong: ({ node, ...props }) => <strong className="font-bold text-white" {...props} />,
+                                            code: ({ node, inline, ...props }) =>
+                                                inline ?
+                                                    <code className="bg-[#000] px-1.5 py-0.5 rounded text-[#ff4500] font-mono text-xs border border-gray-800" {...props} /> :
+                                                    <div className="bg-[#000] p-3 rounded-lg border border-gray-800 my-3 overflow-x-auto shadow-inner">
+                                                        <code className="font-mono text-xs text-gray-300" {...props} />
+                                                    </div>,
+                                            blockquote: ({ node, ...props }) => <blockquote className="border-l-2 border-[#ff4500] pl-3 py-1 my-3 bg-[#ff4500]/5 italic text-gray-400 rounded-r" {...props} />,
+                                        }}
+                                    >
+                                        {msg.parts[0].text}
+                                    </ReactMarkdown>
+                                </div>
+                            )}
                         </div>
                         {/* Timestamp */}
                         <span className={`text-xs mt-1 text-gray-500
