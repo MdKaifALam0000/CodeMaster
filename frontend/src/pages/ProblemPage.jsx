@@ -26,7 +26,6 @@ const ProblemPage = () => {
     const [submitResult, setSubmitResult] = useState(null);
     const [activeLeftTab, setActiveLeftTab] = useState('description');
     const [activeRightTab, setActiveRightTab] = useState('code');
-    const [activeMainTab, setActiveMainTab] = useState('problem');
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [isAnimatorOpen, setIsAnimatorOpen] = useState(false);
     const editorRef = useRef(null);
@@ -297,34 +296,10 @@ const ProblemPage = () => {
 
     return (
         <div className="h-screen flex flex-col bg-[#000000] text-gray-200 font-sans overflow-hidden">
-            {/* Mobile Tab Bar */}
-            <div className="flex lg:hidden bg-[#0d0d0d] border-b border-[#ff4500]/20 p-2 justify-around items-center shrink-0">
-                <button
-                    onClick={() => setActiveMainTab('problem')}
-                    className={`flex-1 py-2 text-center text-xs font-bold tracking-widest uppercase rounded-lg mx-1 transition-all ${
-                        activeMainTab === 'problem'
-                            ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]'
-                            : 'text-gray-400 hover:text-white bg-[#111]'
-                    }`}
-                >
-                    Problem
-                </button>
-                <button
-                    onClick={() => setActiveMainTab('editor')}
-                    className={`flex-1 py-2 text-center text-xs font-bold tracking-widest uppercase rounded-lg mx-1 transition-all ${
-                        activeMainTab === 'editor'
-                            ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]'
-                            : 'text-gray-400 hover:text-white bg-[#111]'
-                    }`}
-                >
-                    Code & Run
-                </button>
-            </div>
-
             {/* Panels Container */}
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                 {/* Left Panel */}
-                <div className={`w-full lg:w-1/2 flex flex-col border-b lg:border-b-0 lg:border-r border-[#ff4500]/20 bg-[#0a0a0a] ${activeMainTab === 'problem' ? 'flex' : 'hidden lg:flex'}`}>
+                <div className="w-full lg:w-1/2 h-[40vh] lg:h-full flex flex-col border-b lg:border-b-0 lg:border-r border-[#ff4500]/20 bg-[#0a0a0a] shrink-0">
                 {/* Left Tabs */}
                 <div className="flex bg-[#111] px-4 gap-1 border-b border-gray-800 pt-2">
                     <button
@@ -449,7 +424,7 @@ const ProblemPage = () => {
             </div>
 
             {/* Right Panel */}
-            <div className={`w-full lg:w-1/2 flex flex-col bg-[#000000] ${activeMainTab === 'editor' ? 'flex' : 'hidden lg:flex'}`}>
+            <div className="w-full lg:w-1/2 h-[60vh] lg:h-full flex flex-col bg-[#000000] shrink-0">
                 {/* Right Tabs */}
                 <div className="flex bg-[#111] px-4 gap-1 border-b border-gray-800 pt-2">
                     <button

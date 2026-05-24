@@ -366,16 +366,6 @@ const TeamCodingPage = () => {
       {/* Mobile Tab Bar */}
       <div className="flex lg:hidden bg-[#0d0d0d] border-b border-[#ff4500]/20 p-2 justify-around items-center shrink-0">
         <button
-          onClick={() => setActiveMainTab('problem')}
-          className={`flex-1 py-2 text-center text-xs font-bold tracking-widest uppercase rounded-lg mx-1 transition-all ${
-            activeMainTab === 'problem'
-              ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]'
-              : 'text-gray-400 hover:text-white bg-[#111]'
-          }`}
-        >
-          Problem
-        </button>
-        <button
           onClick={() => setActiveMainTab('editor')}
           className={`flex-1 py-2 text-center text-xs font-bold tracking-widest uppercase rounded-lg mx-1 transition-all ${
             activeMainTab === 'editor'
@@ -383,7 +373,7 @@ const TeamCodingPage = () => {
               : 'text-gray-400 hover:text-white bg-[#111]'
           }`}
         >
-          Editor
+          Editor & Problem
         </button>
         <button
           onClick={() => setActiveMainTab('room')}
@@ -400,7 +390,7 @@ const TeamCodingPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-[#000000]">
         {/* Left Sidebar - Problem Description */}
-        <div className={`w-full lg:w-1/4 border-b lg:border-b-0 lg:border-r border-[#ff4500]/20 flex flex-col bg-[#0a0a0a] ${activeMainTab === 'problem' ? 'flex' : 'hidden lg:flex'}`}>
+        <div className={`w-full lg:w-1/4 h-[35vh] lg:h-full border-b lg:border-b-0 lg:border-r border-[#ff4500]/20 flex flex-col bg-[#0a0a0a] ${activeMainTab === 'editor' ? 'flex' : 'hidden lg:flex'} shrink-0 lg:shrink`}>
           <div className="p-4 border-b border-[#ff4500]/20">
             <h2 className="text-lg font-black tracking-wider text-white">{currentRoom.problemId.title}</h2>
           </div>
@@ -435,7 +425,7 @@ const TeamCodingPage = () => {
         </div>
 
         {/* Center - Code Editor */}
-        <div className={`w-full lg:flex-1 flex flex-col bg-[#000000] ${activeMainTab === 'editor' ? 'flex' : 'hidden lg:flex'}`}>
+        <div className={`w-full lg:flex-1 h-[65vh] flex flex-col bg-[#000000] ${activeMainTab === 'editor' ? 'flex' : 'hidden lg:flex'} shrink-0 lg:shrink`}>
           {/* Language Selector */}
           <div className="flex justify-between items-center p-3 border-b border-[#ff4500]/20 bg-[#0a0a0a]">
             <div className="flex gap-2">
@@ -505,7 +495,7 @@ const TeamCodingPage = () => {
         </div>
 
         {/* Right Sidebar - Tabbed Interface */}
-        <div className={`w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-[#ff4500]/20 flex flex-col min-h-0 bg-[#0a0a0a] ${activeMainTab === 'room' ? 'flex' : 'hidden lg:flex'}`}>
+        <div className={`w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-[#ff4500]/20 flex flex-col min-h-0 bg-[#0a0a0a] flex-1 lg:flex-initial lg:h-full ${activeMainTab === 'room' ? 'flex' : 'hidden lg:flex'}`}>
           {/* Tabs */}
           <div className="grid grid-cols-4 gap-1 bg-[#111] p-2 border-b border-gray-800">
             <button
