@@ -284,9 +284,14 @@ const logout = async (req, res) => {
         const payload = jwt.decode(token);
 
 
-        await redisClient.set(`token:${token}`, 'Blocked');
-        await redisClient.expireAt(`token:${token}`, payload.exp);
-        //Token added in the Redis Blocklist
+        if (redisClient.isOpen && payload?.exp) {
+            try {
+                await redisClient.set(`token:${token}`, 'Blocked');
+                await redisClient.expireAt(`token:${token}`, payload.exp);
+            } catch (rErr) {
+                console.warn('⚠️ [Logout] Could not blacklist token in Redis:', rErr.message);
+            }
+        }
         //clearing the cookie
 
         res.cookie('token', null, { expires: new Date(Date.now()) });

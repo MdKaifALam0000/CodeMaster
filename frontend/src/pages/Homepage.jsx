@@ -245,8 +245,15 @@ function Homepage() {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+    hidden: { opacity: 0, y: 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: [0.16, 1, 0.3, 1]
+      }
+    }
   };
 
   // --- HEADER ANIMATION VARIANTS from Landing Page ---
@@ -302,7 +309,7 @@ function Homepage() {
       <motion.img 
         src={bgImage} 
         alt="Cyberpunk Background"
-        className="fixed inset-0 w-full h-full object-cover z-0 opacity-40 mix-blend-screen pointer-events-none"
+        className="fixed inset-0 w-full h-full object-cover z-0 opacity-40 mix-blend-screen pointer-events-none will-change-transform transform-gpu"
         animate={{ scale: [1, 1.15, 1] }}
         transition={{ duration: 25, ease: "easeInOut", repeat: Infinity }}
       />
@@ -312,9 +319,9 @@ function Homepage() {
 
       {/* Ambient Neon Glows */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-[#ff003c]/10 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse will-change-transform transform-gpu" />
+        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-[#ff003c]/10 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000 will-change-transform transform-gpu" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000 will-change-transform transform-gpu" />
       </div>
 
       {/* --- HEADER CONTAINER --- */}
@@ -323,7 +330,7 @@ function Homepage() {
           initial="top"
           animate={isScrolled ? "scrolled" : "top"}
           variants={window.innerWidth < 768 ? mobileNavVariants : navVariants}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="flex items-center justify-between pointer-events-auto"
         >
           {/* Logo Section */}

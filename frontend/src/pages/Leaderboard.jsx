@@ -43,9 +43,9 @@ const Leaderboard = () => {
         <div className="min-h-screen bg-[#000000] text-gray-200 font-sans selection:bg-[#ff4500]/30 relative overflow-hidden">
             {/* Background Animated Blobs */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#ff4500]/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-                <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-[#ff003c]/20 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000" />
-                <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000" />
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#ff4500]/20 rounded-full blur-[120px] mix-blend-screen animate-pulse will-change-transform transform-gpu" />
+                <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-[#ff003c]/20 rounded-full blur-[100px] mix-blend-screen animate-pulse delay-1000 will-change-transform transform-gpu" />
+                <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-[#ff4500]/10 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-2000 will-change-transform transform-gpu" />
             </div>
 
             {/* Navigation Bar */}
@@ -203,9 +203,9 @@ const ListRow = ({ user, rank, delay }) => {
         <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay }}
-            className="grid grid-cols-[50px_1fr_100px] md:grid-cols-[80px_1fr_150px] gap-4 p-4 items-center hover:bg-gray-800/50 transition-colors group"
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.4, delay: Math.min(delay, 0.25), ease: [0.16, 1, 0.3, 1] }}
+            className="grid grid-cols-[50px_1fr_100px] md:grid-cols-[80px_1fr_150px] gap-4 p-4 items-center hover:bg-gray-800/50 transition-colors group will-change-transform"
         >
             <div className="flex justify-center">
                 <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800/50 text-gray-400 font-mono font-medium group-hover:bg-gray-700/50 group-hover:text-white transition-colors">

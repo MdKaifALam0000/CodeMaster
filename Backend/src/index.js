@@ -35,7 +35,7 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization']
 };
 
-console.log('🔒 CORS Options:', {
+console.log('CORS Options:', {
     NODE_ENV: process.env.NODE_ENV,
     FRONTEND_URL_raw: process.env.FRONTEND_URL,
     origin_used: corsOptions.origin
@@ -50,7 +50,7 @@ const io = new Server(httpServer, {
     pingTimeout: 20000
 });
 
-console.log('🔌 Socket.IO initialized with CORS:', corsOptions.origin);
+console.log('Socket.IO initialized with CORS:', corsOptions.origin);
 
 // Middleware
 app.use(express.json());
@@ -76,18 +76,25 @@ require('./socket/teamCodingSocket')(io);
 
 // Start server immediately to bind port quickly during cold starts on Vercel/Render
 httpServer.listen(process.env.PORT || 3000, () => {
-    console.log(` Server is running on port ${process.env.PORT || 3000}`);
-    console.log(` Socket.IO server is ready at http://localhost:${process.env.PORT || 3000}`);
-    console.log(` Backend URL: http://localhost:${process.env.PORT || 3000}`);
+    console.log(`Server is running on port ${process.env.PORT || 3000}`);
+    console.log(`Socket.IO server is ready at http://localhost:${process.env.PORT || 3000}`);
+    console.log(`Backend URL: http://localhost:${process.env.PORT || 3000}`);
 });
 
 // Initialize DB & Redis asynchronously
 const initializeConnection = async () => {
     try {
-        await Promise.all([main(), redisClient.connect()]);
-        console.log(" MongoDB and Redis connected successfully!");
+        await main();
+        console.log("MongoDB connected successfully!");
     } catch (err) {
-        console.error(' Error connecting to the database or Redis:', err);
+        console.error('Error connecting to MongoDB:', err);
+    }
+
+    try {
+        await redisClient.connect();
+        console.log("Redis connected successfully!");
+    } catch (err) {
+        console.warn('⚠️ Redis connection failed (running without Redis cache):', err.message);
     }
 };
 

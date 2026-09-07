@@ -41,8 +41,15 @@ const adminMiddleware = async (req, res, next) => {
             });
         }
 
-        // Redis Blocklist check
-        const isBlocked = await redisClient.get(`token:${token}`);
+        // Redis Blocklist check (graceful if Redis is not connected)
+        let isBlocked = null;
+        if (redisClient.isOpen) {
+            try {
+                isBlocked = await redisClient.get(`token:${token}`);
+            } catch (rErr) {
+                console.warn('⚠️ [AdminMiddleware] Redis check failed:', rErr.message);
+            }
+        }
         if (isBlocked) {
             return res.status(401).json({
                 success: false,

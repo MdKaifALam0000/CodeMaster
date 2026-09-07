@@ -43,7 +43,7 @@ Your task is to produce a JSON response with these keys:
   * caption: {action: "caption", time: X, text: "..."} (Use Emojis here too!)
   * pause: {action: "pause", time: X, duration: N}
 - ssml: SSML-ready narration text
-- quiz: Array of 3 multiple choice questions. Schema: { "question": "Gamified Question String", "options": ["Option 1", "Option 2", "Option 3", "Option 4"], "correct": 0 } (IMPORTANT: "correct" must be the 0-based INTEGER INDEX of the correct option)
+- quiz: Array of 3 multiple choice questions. Schema: { "question": "Gamified Question String", "options": ["Option 1", "Option 2", "Option 3", "Option 4"], "correct": 0, "explanation": "Detailed explanation of why the correct option is right" } (IMPORTANT: "correct" must be the 0-based INTEGER INDEX of the correct option)
 
 RULES:
 1. GAMIFY IT! Don't just say "index i increments". Say "The Red Racer moves forward! 🏎️" or "The Scout searches the next room 🔦".
@@ -127,9 +127,10 @@ Respond with ONLY the JSON object.`;
                         properties: {
                             question: { type: "STRING" },
                             options: { type: "ARRAY", items: { type: "STRING" } },
-                            correct: { type: "INTEGER" }
+                            correct: { type: "INTEGER" },
+                            explanation: { type: "STRING" }
                         },
-                        required: ["question", "options", "correct"]
+                        required: ["question", "options", "correct", "explanation"]
                     }
                 }
             },

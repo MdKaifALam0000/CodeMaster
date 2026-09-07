@@ -30,8 +30,15 @@ const userMiddleware = async (req, res, next) => {
             });
         }
 
-        //Redis ke blocklist mein present hain ki nahi
-        const isBlocked = await redisClient.get(`token:${token}`);
+        // Redis blocklist check (graceful if Redis is not connected)
+        let isBlocked = null;
+        if (redisClient.isOpen) {
+            try {
+                isBlocked = await redisClient.get(`token:${token}`);
+            } catch (rErr) {
+                console.warn('⚠️ [Middleware] Redis check failed:', rErr.message);
+            }
+        }
 
         console.log('🔍 [Middleware] Token Check:', {
             tokenId: _id,
@@ -39,7 +46,7 @@ const userMiddleware = async (req, res, next) => {
             isBlocked: isBlocked
         });
 
-        //if present then we will throw an error
+        // If present in blocklist, reject
         if (isBlocked) {
             console.error('🚫 [Middleware] Token Blocked by Redis');
             return res.status(401).json({

@@ -12,29 +12,42 @@ const LandingPage = () => {
     
     // Smooth scroll progress for parallax
     const smoothProgress = useSpring(scrollYProgress, {
-        stiffness: 100,
-        damping: 30,
+        stiffness: 80,
+        damping: 25,
         restDelta: 0.001
     });
 
-    const yBackground = useTransform(smoothProgress, [0, 1], ['0%', '50%']);
+    const yBackground = useTransform(smoothProgress, [0, 1], ['0%', '35%']);
 
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 50);
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     const staggerContainer = {
         hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+        visible: { 
+            opacity: 1, 
+            transition: { 
+                staggerChildren: 0.12,
+                delayChildren: 0.05
+            } 
+        }
     };
 
     const fadeInUp = {
-        hidden: { opacity: 0, y: 50 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+        hidden: { opacity: 0, y: 35 },
+        visible: { 
+            opacity: 1, 
+            y: 0, 
+            transition: { 
+                duration: 0.8, 
+                ease: [0.16, 1, 0.3, 1] 
+            } 
+        }
     };
 
     const glassPanelClass = "bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 shadow-[0_0_25px_rgba(255,69,0,0.05)] hover:shadow-[0_0_35px_rgba(255,69,0,0.15)] hover:border-[#ff4500]/40 transition-all duration-500 rounded-2xl";
@@ -49,11 +62,11 @@ const LandingPage = () => {
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
                 <motion.div 
                     style={{ y: yBackground }}
-                    className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#ff4500]/10 blur-[120px]"
+                    className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#ff4500]/10 blur-[120px] will-change-transform transform-gpu pointer-events-none"
                 />
                 <motion.div 
-                    style={{ y: useTransform(smoothProgress, [0, 1], ['0%', '-50%']) }}
-                    className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#ff003c]/10 blur-[150px]"
+                    style={{ y: useTransform(smoothProgress, [0, 1], ['0%', '-35%']) }}
+                    className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#ff003c]/10 blur-[150px] will-change-transform transform-gpu pointer-events-none"
                 />
             </div>
 
@@ -204,11 +217,11 @@ const LandingPage = () => {
                         ].map((feature, idx) => (
                             <motion.div 
                                 key={idx}
-                                initial={{ opacity: 0, y: 50 }}
+                                initial={{ opacity: 0, y: 35 }}
                                 whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-50px" }}
-                                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                                className={`${glassPanelClass} p-8 group relative overflow-hidden`}
+                                viewport={{ once: true, amount: 0.15 }}
+                                transition={{ duration: 0.7, delay: (idx % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                                className={`${glassPanelClass} p-8 group relative overflow-hidden will-change-transform`}
                             >
                                 <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-black text-white pointer-events-none group-hover:scale-110 transition-transform duration-700">
                                     0{idx + 1}
@@ -236,11 +249,11 @@ const LandingPage = () => {
                         ].map((stat, idx) => (
                             <motion.div 
                                 key={idx}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                className="text-center relative"
+                                initial={{ opacity: 0, y: 25, scale: 0.95 }}
+                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                viewport={{ once: true, amount: 0.2 }}
+                                transition={{ duration: 0.7, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                                className="text-center relative will-change-transform"
                             >
                                 <div className="absolute inset-0 bg-[#ff4500]/5 blur-3xl rounded-full" />
                                 <div className="text-5xl md:text-6xl font-black text-white mb-2 tracking-tighter drop-shadow-[0_0_15px_rgba(255,69,0,0.5)]">
@@ -256,10 +269,10 @@ const LandingPage = () => {
             {/* Call to Action */}
             <section className="py-40 relative z-10 overflow-hidden">
                 <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    whileInView={{ scale: 1, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1 }}
+                    initial={{ scale: 0.96, opacity: 0, y: 30 }}
+                    whileInView={{ scale: 1, opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     className="container mx-auto px-6 relative"
                 >
                     <div className="absolute inset-0 bg-gradient-to-r from-[#ff4500]/20 to-transparent blur-[100px] pointer-events-none" />

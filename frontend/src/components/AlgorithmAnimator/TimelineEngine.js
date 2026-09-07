@@ -1,11 +1,14 @@
 /**
- * Timeline Engine - Controls animation playback based on timeline JSON
+ * TimelineEngine - Continuous real-time playback engine for algorithm animations
+ * Maintains smooth, uninterrupted clock physics without freezing or stuttering.
  */
 class TimelineEngine {
-    constructor(timeline, onAction, onComplete) {
+    constructor(timeline, onAction, onComplete, onTick) {
         this.timeline = timeline || [];
         this.onAction = onAction;
         this.onComplete = onComplete;
+        this.onTick = onTick; // Called on every animation frame with (currentTime, progressPercent)
+
         this.currentIndex = 0;
         this.isPlaying = false;
         this.isPaused = false;
@@ -16,26 +19,27 @@ class TimelineEngine {
     }
 
     /**
-     * Start playing the timeline from the beginning
+     * Start or resume playing the timeline continuously
      */
     play() {
         if (this.timeline.length === 0) return;
 
         this.isPlaying = true;
         this.isPaused = false;
-        this.startTime = performance.now() - (this.pausedTime * 1000);
+        this.startTime = performance.now();
         this.tick();
     }
 
     /**
-     * Pause the timeline
+     * Pause the timeline cleanly without losing position
      */
     pause() {
         if (!this.isPlaying) return;
 
+        this.pausedTime = this.getCurrentTime();
         this.isPaused = true;
         this.isPlaying = false;
-        this.pausedTime = (performance.now() - this.startTime) / 1000;
+        this.startTime = null;
 
         if (this.animationFrame) {
             cancelAnimationFrame(this.animationFrame);
@@ -68,87 +72,109 @@ class TimelineEngine {
     }
 
     /**
-     * Seek to a specific time in seconds
+     * Seek to a specific timestamp in seconds and replay visual state
      */
     seek(time) {
-        this.pausedTime = time;
-        this.currentIndex = 0;
+        const duration = this.getDuration();
+        const clampedTime = Math.max(0, Math.min(time, duration));
+        this.pausedTime = clampedTime;
 
-        // Find the correct index for this time
-        for (let i = 0; i < this.timeline.length; i++) {
-            if (this.timeline[i].time <= time) {
-                this.currentIndex = i + 1;
-            } else {
-                break;
+        if (this.isPlaying) {
+            this.startTime = performance.now();
+        }
+
+        // Find actions up to target time
+        const targetIndex = this.timeline.findIndex(action => action.time > clampedTime);
+        const endIdx = targetIndex === -1 ? this.timeline.length : targetIndex;
+
+        // Replay all actions up to seek target to reconstruct visual state
+        if (this.onAction) {
+            for (let i = 0; i < endIdx; i++) {
+                const action = this.timeline[i];
+                this.onAction(action, action.time, true);
             }
         }
 
-        if (this.isPlaying) {
-            this.startTime = performance.now() - (time * 1000);
+        this.currentIndex = endIdx;
+
+        if (this.onTick) {
+            this.onTick(clampedTime, this.getProgress());
         }
     }
 
     /**
-     * Set playback speed (1 = normal, 0.5 = half, 2 = double)
+     * Set playback speed (e.g. 0.5, 1, 1.5, 2)
      */
     setSpeed(speed) {
-        const currentTime = this.getCurrentTime();
-        this.speed = speed;
         if (this.isPlaying) {
-            this.startTime = performance.now() - (currentTime * 1000 / this.speed);
+            // Snapshot current time before updating speed factor
+            this.pausedTime = this.getCurrentTime();
+            this.startTime = performance.now();
         }
+        this.speed = Math.max(0.25, Math.min(speed, 3.0));
     }
 
     /**
-     * Get current playback time in seconds
+     * Get current playback time in seconds with sub-millisecond precision
      */
     getCurrentTime() {
-        if (!this.startTime) return this.pausedTime;
-        return ((performance.now() - this.startTime) / 1000) * this.speed;
+        if (!this.isPlaying || !this.startTime) {
+            return this.pausedTime;
+        }
+        const elapsed = ((performance.now() - this.startTime) / 1000) * this.speed;
+        return this.pausedTime + elapsed;
     }
 
     /**
-     * Get total duration of the timeline
+     * Get total duration of the timeline in seconds
      */
     getDuration() {
         if (this.timeline.length === 0) return 0;
         const lastAction = this.timeline[this.timeline.length - 1];
-        return lastAction.time + (lastAction.duration || 1);
+        return Math.max(1, (lastAction.time || 0) + (lastAction.duration || 1.5));
     }
 
     /**
-     * Main animation loop
+     * Main animation loop running at 60/120 FPS
      */
     tick() {
         if (!this.isPlaying) return;
 
         const currentTime = this.getCurrentTime();
+        const duration = this.getDuration();
 
-        // Execute all actions up to current time
+        // Execute all actions scheduled up to the current timestamp
         while (
+            this.isPlaying &&
             this.currentIndex < this.timeline.length &&
             this.timeline[this.currentIndex].time <= currentTime
         ) {
             const action = this.timeline[this.currentIndex];
             if (this.onAction) {
-                this.onAction(action, currentTime);
+                this.onAction(action, currentTime, false);
             }
             this.currentIndex++;
         }
 
-        // Check if we've reached the end
-        if (this.currentIndex >= this.timeline.length) {
-            const duration = this.getDuration();
-            if (currentTime >= duration) {
-                this.isPlaying = false;
-                if (this.onComplete) {
-                    this.onComplete();
-                }
-                return;
-            }
+        // Notify tick listener with smooth progress
+        if (this.onTick) {
+            this.onTick(currentTime, this.getProgress());
         }
 
-        // Continue the animation loop
+        // Check if animation reached the end
+        if (currentTime >= duration && this.currentIndex >= this.timeline.length) {
+            this.isPlaying = false;
+            this.pausedTime = duration;
+            if (this.onTick) {
+                this.onTick(duration, 100);
+            }
+            if (this.onComplete) {
+                this.onComplete();
+            }
+            return;
+        }
+
+        // Continue running uninterrupted
         this.animationFrame = requestAnimationFrame(() => this.tick());
     }
 
@@ -158,7 +184,7 @@ class TimelineEngine {
     getProgress() {
         const duration = this.getDuration();
         if (duration === 0) return 0;
-        return Math.min(100, (this.getCurrentTime() / duration) * 100);
+        return Math.min(100, Math.max(0, (this.getCurrentTime() / duration) * 100));
     }
 }
 

@@ -19,6 +19,7 @@ import TeamCodingLobby from "./pages/TeamCodingLobby";
 import TeamCodingPage from "./pages/TeamCodingPage";
 import Leaderboard from "./pages/Leaderboard";
 import ForgotPassword from "./pages/ForgotPassword";
+import SmoothScrollProvider from "./components/SmoothScrollProvider";
 
 function App() {
 
@@ -86,7 +87,7 @@ function App() {
   }
 
   return (
-    <>
+    <SmoothScrollProvider>
       <Routes>
 
         <Route path="/" element={isAuthenticated ? <Navigate to="/home" /> : <LandingPage />}></Route>
@@ -107,7 +108,7 @@ function App() {
         <Route path="/forgot-password" element={isAuthenticated ? <Navigate to="/home" /> : <ForgotPassword />} />
       </Routes>
       <Toaster position="top-center" reverseOrder={false} />
-    </>
+    </SmoothScrollProvider>
   )
 }
 
