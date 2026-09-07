@@ -9,37 +9,9 @@ import {
     Clock,
     XCircle
 } from 'lucide-react';
+import ActivityHeatmap from './ActivityHeatmap';
 
 const DashboardOverview = ({ stats, progress, recentSubmissions }) => {
-    // Generate heatmap data for last 365 days
-    const heatmapData = useMemo(() => {
-        const data = [];
-        const today = new Date();
-
-        // Create activity map from progress data
-        const activityMap = {};
-        if (progress?.activityData) {
-            Object.entries(progress.activityData).forEach(([date, info]) => {
-                activityMap[date] = info.submissions || 0;
-            });
-        }
-
-        for (let i = 364; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            const count = activityMap[dateStr] || 0;
-
-            let level = 0;
-            if (count > 0) level = 1;
-            if (count >= 2) level = 2;
-            if (count >= 4) level = 3;
-            if (count >= 6) level = 4;
-
-            data.push({ date: dateStr, count, level });
-        }
-        return data;
-    }, [progress]);
 
     // Calculate difficulty stats
     const difficultyStats = useMemo(() => {
@@ -138,39 +110,8 @@ const DashboardOverview = ({ stats, progress, recentSubmissions }) => {
 
             {/* Two Column Layout */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--dash-space-xl)' }}>
-                {/* Activity Heatmap */}
-                <div className="content-section">
-                    <div className="section-header">
-                        <h2 className="section-title">Activity</h2>
-                        <span style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted)' }}>
-                            {stats?.problemsSolved || 0} submissions in the last year
-                        </span>
-                    </div>
-                    <div className="section-content">
-                        <div className="heatmap-container">
-                            <div className="heatmap-grid">
-                                {heatmapData.map((cell, index) => (
-                                    <div
-                                        key={index}
-                                        className={`heatmap-cell level-${cell.level}`}
-                                        title={`${cell.date}: ${cell.count} submissions`}
-                                    />
-                                ))}
-                            </div>
-                            <div className="heatmap-legend">
-                                <span>Less</span>
-                                <div className="heatmap-legend-cells">
-                                    <div className="heatmap-cell" />
-                                    <div className="heatmap-cell level-1" />
-                                    <div className="heatmap-cell level-2" />
-                                    <div className="heatmap-cell level-3" />
-                                    <div className="heatmap-cell level-4" />
-                                </div>
-                                <span>More</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* Activity Heatmap - LeetCode Style with Month-Wise View & Opacity Tiers */}
+                <ActivityHeatmap progress={progress} stats={stats} />
 
                 {/* Difficulty Breakdown */}
                 <div className="content-section">

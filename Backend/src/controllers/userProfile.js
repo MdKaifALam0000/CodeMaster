@@ -283,24 +283,38 @@ const getUserProgress = async (req, res) => {
             }
         });
 
-        // Get submission activity for last 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        const recentSubmissions = submissions.filter(sub =>
-            new Date(sub.createdAt) >= thirtyDaysAgo
-        );
-
-        // Group by date
+        // Group all submissions by date for full-year and month-wise activity
         const activityData = {};
-        recentSubmissions.forEach(sub => {
-            const date = new Date(sub.createdAt).toISOString().split('T')[0];
-            if (!activityData[date]) {
-                activityData[date] = { submissions: 0, accepted: 0 };
-            }
-            activityData[date].submissions++;
+        submissions.forEach(sub => {
+            if (!sub.createdAt) return;
+            const d = new Date(sub.createdAt);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const localDate = `${year}-${month}-${day}`;
+            const isoDate = d.toISOString().split('T')[0];
+
+            [localDate, isoDate].forEach(k => {
+                if (!activityData[k]) {
+                    activityData[k] = { submissions: 0, accepted: 0, problems: [] };
+                }
+            });
+
+            activityData[localDate].submissions++;
+            if (localDate !== isoDate) activityData[isoDate].submissions++;
+
             if (sub.status === 'accepted') {
-                activityData[date].accepted++;
+                activityData[localDate].accepted++;
+                const pId = sub.problemId ? (sub.problemId._id || sub.problemId).toString() : null;
+                if (pId && !activityData[localDate].problems.includes(pId)) {
+                    activityData[localDate].problems.push(pId);
+                }
+                if (localDate !== isoDate) {
+                    activityData[isoDate].accepted++;
+                    if (pId && !activityData[isoDate].problems.includes(pId)) {
+                        activityData[isoDate].problems.push(pId);
+                    }
+                }
             }
         });
 

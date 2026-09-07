@@ -92,13 +92,15 @@ const submitCode = async (req, res) => {
 
     await submittedResult.save();
 
-    // ProblemId ko insert karenge userSchema ke problemSolved mein if it is not persent there.
-
-    // req.result == user Information
-
-    if (!req.result.problemSolved.includes(problemId)) {
-      req.result.problemSolved.push(problemId);
-      await req.result.save();
+    // ProblemId ko insert karenge userSchema ke problemSolved mein if accepted and not already present
+    if (status === 'accepted' && req.result && req.result.problemSolved) {
+      const isAlreadySolved = req.result.problemSolved.some(
+        id => id.toString() === problemId.toString()
+      );
+      if (!isAlreadySolved) {
+        req.result.problemSolved.push(problemId);
+        await req.result.save();
+      }
     }
 
     const accepted = (status == 'accepted')
