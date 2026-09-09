@@ -164,34 +164,107 @@ const getProblemById = async (req, res) => {
             return res.status(400).send('Id is Missing !!');
         }
 
-        //saaare data ko frontend pe bhejne ka koi zarorat nahi hian !!
         const getProblem = await Problem.findById(id).select('_id title description difficulty tags visibleTestCases startCode referenceSolution hiddenTestCases');
-
 
         if (!getProblem) {
             return res.status(400).send("Problem Not Found !!");
         }
 
+        const user = req.result;
+        const isAdmin = user && user.role === 'admin';
+        const isSolved = user && user.problemSolved && user.problemSolved.some(pid => pid.toString() === id.toString());
+        const isUnlocked = user && user.unlockedSolutions && user.unlockedSolutions.some(pid => pid.toString() === id.toString());
 
-        //video k abhi url hain usko yehi se bhej denge
-        const videos = await solutionVideo.findOne({ problemId: id });
-        if (videos) {
-            const responseData = {
-                ...getProblem.toObject(),
-                secureUrl: videos.secureUrl,
-                cloudinaryPublicId: videos.cloudinaryPublicId,
-                thumbnailUrl: videos.thumbnailUrl,
-                duration: videos.duration
-            }
-
-            return res.status(200).send(responseData);
+        // Count attempts made by this user for this problem
+        let attemptsCount = 0;
+        if (user && user._id) {
+            attemptsCount = await submission.countDocuments({
+                userId: user._id,
+                problemId: id
+            });
         }
 
-        res.status(200).send(getProblem);
+        const solutionsUnlocked = !!(isAdmin || isSolved || isUnlocked);
+        const canUnlock = attemptsCount >= 5;
+
+        const problemObj = getProblem.toObject();
+        // Hide reference solution from client if not unlocked
+        if (!solutionsUnlocked) {
+            problemObj.referenceSolution = [];
+        }
+
+        problemObj.solutionsUnlocked = solutionsUnlocked;
+        problemObj.isSolved = !!isSolved;
+        problemObj.attemptsCount = attemptsCount;
+        problemObj.canUnlock = canUnlock;
+
+        // video k abhi url hain usko yehi se bhej denge
+        const videos = await solutionVideo.findOne({ problemId: id });
+        if (videos) {
+            problemObj.secureUrl = videos.secureUrl;
+            problemObj.cloudinaryPublicId = videos.cloudinaryPublicId;
+            problemObj.thumbnailUrl = videos.thumbnailUrl;
+            problemObj.duration = videos.duration;
+        }
+
+        res.status(200).send(problemObj);
 
     }
     catch (err) {
         return res.status(400).send('getProblem has a issue !!');
+    }
+}
+
+const unlockProblemSolution = async (req, res) => {
+    const { id } = req.params;
+    try {
+        if (!id) {
+            return res.status(400).json({ success: false, error: 'Problem ID is missing' });
+        }
+
+        const user = req.result;
+        if (!user) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+
+        const problem = await Problem.findById(id).select('_id referenceSolution');
+        if (!problem) {
+            return res.status(404).json({ success: false, error: 'Problem not found' });
+        }
+
+        const isAdmin = user.role === 'admin';
+        const isSolved = user.problemSolved && user.problemSolved.some(pid => pid.toString() === id.toString());
+        const isAlreadyUnlocked = user.unlockedSolutions && user.unlockedSolutions.some(pid => pid.toString() === id.toString());
+
+        const attemptsCount = await submission.countDocuments({
+            userId: user._id,
+            problemId: id
+        });
+
+        if (!isAdmin && !isSolved && attemptsCount < 5) {
+            return res.status(403).json({
+                success: false,
+                error: `You need at least 5 submission attempts to unlock the solution. Current attempts: ${attemptsCount}/5`
+            });
+        }
+
+        // Add to unlockedSolutions if not already present
+        if (!user.unlockedSolutions) {
+            user.unlockedSolutions = [];
+        }
+        if (!isAlreadyUnlocked) {
+            user.unlockedSolutions.push(id);
+            await user.save();
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Solution unlocked successfully',
+            referenceSolution: problem.referenceSolution,
+            solutionsUnlocked: true
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message || 'Internal Server Error' });
     }
 }
 
@@ -271,4 +344,4 @@ const submittedProblem = async (req, res) => {
     }
 }
 
-module.exports = { createProblem, updateProblem, deleteProblem, getProblemById, getAllProblem, solvedAllProblemByUser, submittedProblem };
+module.exports = { createProblem, updateProblem, deleteProblem, getProblemById, getAllProblem, solvedAllProblemByUser, submittedProblem, unlockProblemSolution };

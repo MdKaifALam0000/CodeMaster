@@ -38,6 +38,10 @@ const userSchema = new Schema({
             unique: true
         }],
     },
+    unlockedSolutions: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Problem'
+    }],
     password: {
         type: String,
         required: true,

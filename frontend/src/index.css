@@ -15,6 +15,12 @@ html.lenis, html.lenis body {
   overscroll-behavior: contain;
 }
 
+[data-lenis-prevent],
+.overflow-y-auto {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .lenis.lenis-stopped {
   overflow: hidden;
 }

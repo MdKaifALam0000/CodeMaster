@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -16,7 +16,23 @@ import {
   Hexagon,
   User,
   LogOut,
-  Sparkles
+  Sparkles,
+  LayoutGrid,
+  List,
+  Flame,
+  ArrowRight,
+  Boxes,
+  GitFork,
+  Network,
+  Cpu,
+  FileCode,
+  Terminal,
+  ArrowUpDown,
+  CheckCircle2,
+  Play,
+  RotateCcw,
+  SlidersHorizontal,
+  Layers
 } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 import { logoutUser } from '../authSlice';
@@ -59,26 +75,82 @@ const formatDate = (dateString) => {
   }
 };
 
-// A custom helper function to get the correct badge style
-const getDifficultyStyle = (difficulty) => {
+// Comprehensive theme helper for difficulty visual styling, level meter, and XP
+const getDifficultyTheme = (difficulty) => {
   switch (difficulty?.toLowerCase()) {
     case 'easy':
-      return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]';
+      return {
+        badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.2)]',
+        borderHover: 'hover:border-emerald-500/60',
+        glow: 'from-emerald-500/20',
+        accentText: 'text-emerald-400',
+        accentBg: 'bg-emerald-500',
+        barActive: 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]',
+        level: 1,
+        xp: '+100 XP'
+      };
     case 'medium':
-      return 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]';
+      return {
+        badge: 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.2)]',
+        borderHover: 'hover:border-amber-500/60',
+        glow: 'from-amber-500/20',
+        accentText: 'text-amber-400',
+        accentBg: 'bg-amber-500',
+        barActive: 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]',
+        level: 2,
+        xp: '+250 XP'
+      };
     case 'hard':
-      return 'bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.2)]';
+      return {
+        badge: 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.2)]',
+        borderHover: 'hover:border-rose-500/60',
+        glow: 'from-rose-500/20',
+        accentText: 'text-rose-400',
+        accentBg: 'bg-rose-500',
+        barActive: 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]',
+        level: 3,
+        xp: '+500 XP'
+      };
     default:
-      return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
+      return {
+        badge: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
+        borderHover: 'hover:border-white/20',
+        glow: 'from-white/5',
+        accentText: 'text-slate-400',
+        accentBg: 'bg-slate-500',
+        barActive: 'bg-slate-500',
+        level: 1,
+        xp: '+100 XP'
+      };
   }
 };
 
+const getDifficultyStyle = (difficulty) => {
+  return getDifficultyTheme(difficulty).badge;
+};
+
+// Map tag names to thematic icons
+const getTagIcon = (tag) => {
+  const t = tag?.toLowerCase() || '';
+  if (t.includes('array')) return Boxes;
+  if (t.includes('link')) return GitFork;
+  if (t.includes('graph')) return Network;
+  if (t.includes('tree')) return GitFork;
+  if (t.includes('dp') || t.includes('dynamic')) return Cpu;
+  if (t.includes('sort')) return ArrowUpDown;
+  if (t.includes('search')) return Search;
+  if (t.includes('string')) return FileCode;
+  return Terminal;
+};
+
 function Homepage() {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const [problems, setProblems] = useState([]);
   const [solvedProblems, setSolvedProblems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
@@ -218,15 +290,21 @@ function Homepage() {
   };
 
   const filteredProblems = problems.filter((problem) => {
-    const difficultyMatch = filters.difficulty === 'all' || problem.difficulty === filters.difficulty;
-    const tagMatch = filters.tag === 'all' || problem.tags === filters.tag;
+    const difficultyMatch =
+      filters.difficulty === 'all' ||
+      problem.difficulty?.toLowerCase() === filters.difficulty.toLowerCase();
+    const tagMatch =
+      filters.tag === 'all' ||
+      problem.tags?.toLowerCase() === filters.tag.toLowerCase();
+    const isSolved = isProblemSolved(problem._id);
     const statusMatch =
       filters.status === 'all' ||
-      (filters.status === 'solved' && isProblemSolved(problem._id));
+      (filters.status === 'solved' && isSolved) ||
+      (filters.status === 'unsolved' && !isSolved);
     const searchMatch =
       searchQuery === '' ||
-      problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      problem.tags.toLowerCase().includes(searchQuery.toLowerCase());
+      problem.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      problem.tags?.toLowerCase().includes(searchQuery.toLowerCase());
     return difficultyMatch && tagMatch && statusMatch && searchMatch;
   });
 
@@ -657,121 +735,408 @@ function Homepage() {
           )}
         </AnimatePresence>
 
-        {/* Filters and Search */}
-        <div className="container mx-auto px-6 pb-20">
+        {/* Filters, Controls and Problem List */}
+        <div className="container mx-auto px-6 pb-24">
+          {/* Main Controls Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col md:flex-row gap-4 mb-8"
+            className="flex flex-col gap-4 mb-8"
           >
-            <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-[#ff4500] transition-colors" />
-              <input
-                type="text"
-                placeholder="Search problems..."
-                className="w-full bg-[#111]/80 border border-white/10 text-white pl-12 pr-4 py-4 rounded-2xl focus:outline-none focus:border-[#ff4500] focus:ring-1 focus:ring-[#ff4500] transition-all placeholder:text-gray-600 backdrop-blur-md shadow-inner"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            {/* Row 1: Search + View Switcher */}
+            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+              {/* Search Bar */}
+              <div className="relative flex-1 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-[#ff4500] transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search challenges by title or topic (e.g. Array, Search, DP)..."
+                  className="w-full bg-[#0a0a0c]/80 border border-white/10 text-white pl-12 pr-10 py-3.5 rounded-2xl focus:outline-none focus:border-[#ff4500] focus:ring-1 focus:ring-[#ff4500] transition-all placeholder:text-gray-600 backdrop-blur-xl shadow-inner text-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* View Switcher Toggle (Grid vs List) */}
+              <div className="flex items-center gap-1.5 p-1.5 bg-[#0a0a0c]/80 border border-white/10 rounded-2xl backdrop-blur-xl shrink-0 self-end md:self-auto">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold tracking-wider transition-all ${
+                    viewMode === 'grid'
+                      ? 'bg-[#ff4500] text-white shadow-[0_0_15px_rgba(255,69,0,0.4)]'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                  title="Grid View"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                  <span className="hidden sm:inline">GRID</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold tracking-wider transition-all ${
+                    viewMode === 'list'
+                      ? 'bg-[#ff4500] text-white shadow-[0_0_15px_rgba(255,69,0,0.4)]'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                  title="List View"
+                >
+                  <List className="w-4 h-4" />
+                  <span className="hidden sm:inline">LIST</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar items-center">
-              {['all', 'easy', 'medium', 'hard'].map((diff) => (
-                <button
-                  key={diff}
-                  onClick={() => setFilters({ ...filters, difficulty: diff })}
-                  className={`px-6 py-4 rounded-2xl capitalize text-sm font-bold tracking-wider transition-all whitespace-nowrap border ${filters.difficulty === diff
-                    ? 'bg-[#ff4500] text-white border-[#ff4500] shadow-[0_0_15px_rgba(255,69,0,0.4)]'
-                    : 'bg-[#111]/80 text-gray-400 border-white/10 hover:border-[#ff4500]/50 hover:text-white'
-                    }`}
-                >
-                  {diff}
-                </button>
-              ))}
+            {/* Row 2: Filter Badges & Topic Dropdown */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              {/* Left group: Status & Difficulty */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Status Filters: All, Unsolved, Solved */}
+                <div className="flex items-center p-1 bg-[#0a0a0c]/80 border border-white/10 rounded-2xl backdrop-blur-xl">
+                  {[
+                    { key: 'all', label: 'All' },
+                    { key: 'unsolved', label: 'Unsolved', icon: Flame },
+                    { key: 'solved', label: 'Solved', icon: CheckCircle2 }
+                  ].map((st) => (
+                    <button
+                      key={st.key}
+                      onClick={() => setFilters({ ...filters, status: st.key })}
+                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-wider transition-all ${
+                        filters.status === st.key
+                          ? 'bg-white/15 text-white shadow-sm border border-white/10'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {st.icon && <st.icon className="w-3.5 h-3.5 text-[#ff4500]" />}
+                      <span>{st.label}</span>
+                    </button>
+                  ))}
+                </div>
 
-              <div className="w-px h-8 bg-white/20 mx-2" />
+                <div className="hidden sm:block w-px h-6 bg-white/10 mx-1" />
 
-              <select
-                value={filters.tag}
-                onChange={(e) => setFilters({ ...filters, tag: e.target.value })}
-                className="px-6 py-4 rounded-2xl bg-[#111]/80 border border-white/10 text-gray-300 text-sm font-bold tracking-wider focus:outline-none focus:border-[#ff4500] hover:border-[#ff4500]/50 transition-all appearance-none cursor-pointer min-w-[150px] shadow-inner"
-              >
-                <option value="all">All Tags</option>
-                <option value="array">Array</option>
-                <option value="linkedList">Linked List</option>
-                <option value="graph">Graph</option>
-                <option value="dp">DP</option>
-              </select>
+                {/* Difficulty Filters */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                  {[
+                    { key: 'all', label: 'All Diff' },
+                    { key: 'easy', label: 'Easy', color: 'hover:border-emerald-500/50' },
+                    { key: 'medium', label: 'Medium', color: 'hover:border-amber-500/50' },
+                    { key: 'hard', label: 'Hard', color: 'hover:border-rose-500/50' }
+                  ].map((diff) => (
+                    <button
+                      key={diff.key}
+                      onClick={() => setFilters({ ...filters, difficulty: diff.key })}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-wider transition-all uppercase border ${
+                        filters.difficulty === diff.key
+                          ? 'bg-[#ff4500] text-white border-[#ff4500] shadow-[0_0_12px_rgba(255,69,0,0.35)]'
+                          : `bg-[#0a0a0c]/80 text-gray-400 border-white/10 ${diff.color} hover:text-white`
+                      }`}
+                    >
+                      {diff.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right group: Topic Selector */}
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <div className="relative w-full sm:w-auto">
+                  <select
+                    value={filters.tag}
+                    onChange={(e) => setFilters({ ...filters, tag: e.target.value })}
+                    className="w-full sm:w-auto px-4 py-2 pr-9 rounded-2xl bg-[#0a0a0c]/80 border border-white/10 text-gray-300 text-xs font-bold tracking-wider focus:outline-none focus:border-[#ff4500] hover:border-white/20 transition-all cursor-pointer shadow-inner appearance-none"
+                  >
+                    <option value="all">All Topics</option>
+                    <option value="array">Arrays</option>
+                    <option value="string">Strings</option>
+                    <option value="linked list">Linked Lists</option>
+                    <option value="tree">Trees</option>
+                    <option value="graph">Graphs</option>
+                    <option value="dynamic programming">Dynamic Programming</option>
+                    <option value="sorting">Sorting</option>
+                    <option value="searching">Searching</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                    <ChevronRight className="w-3.5 h-3.5 rotate-90" />
+                  </div>
+                </div>
+
+                {(searchQuery || filters.difficulty !== 'all' || filters.tag !== 'all' || filters.status !== 'all') && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setFilters({ difficulty: 'all', tag: 'all', status: 'all' });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white transition-all shrink-0"
+                    title="Reset all filters"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-[#ff4500]" />
+                    <span className="hidden md:inline">Reset</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Results Count Bar */}
+            <div className="flex items-center justify-between px-2 pt-2 text-xs font-mono text-gray-500">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-3.5 h-3.5 text-[#ff4500]" />
+                <span>
+                  SHOWING <span className="text-white font-bold">{filteredProblems.length}</span> OF <span className="text-gray-400">{problems.length}</span> CHALLENGES
+                </span>
+              </div>
+              <div className="hidden sm:flex items-center gap-3">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
+                  Easy (+100 XP)
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+                  Medium (+250 XP)
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]" />
+                  Hard (+500 XP)
+                </span>
+              </div>
             </div>
           </motion.div>
 
-          {/* Problem List */}
+          {/* Problem List / Grid Container */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid gap-4"
+            key={viewMode}
           >
             {filteredProblems.length === 0 ? (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20 bg-[#0a0a0a]/50 backdrop-blur-md rounded-3xl border border-white/5"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-20 bg-[#0a0a0e]/60 backdrop-blur-xl rounded-3xl border border-white/5 relative overflow-hidden"
               >
-                <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]">
-                  <Search className="w-8 h-8 text-gray-600" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,69,0,0.05)_0%,transparent_70%)] pointer-events-none" />
+                <div className="w-20 h-20 bg-black/80 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-white/10 shadow-[0_0_25px_rgba(0,0,0,0.8)]">
+                  <Search className="w-8 h-8 text-[#ff4500]" />
                 </div>
-                <h3 className="text-xl font-bold tracking-wider text-white mb-2">NO RECORDS FOUND</h3>
-                <p className="text-gray-500 font-light">Adjust search parameters or filters</p>
-              </motion.div>
-            ) : (
-              filteredProblems.map((problem, index) => (
-                <motion.div
-                  key={problem._id}
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.01, x: 4 }}
-                  className="group bg-[#0a0a0a]/70 hover:bg-black backdrop-blur-xl border border-white/10 hover:border-[#ff4500]/50 rounded-2xl p-5 transition-all cursor-pointer relative overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_20px_rgba(255,69,0,0.2)]"
+                <h3 className="text-xl font-bold tracking-wider text-white mb-2">NO CHALLENGES FOUND</h3>
+                <p className="text-gray-500 font-light text-sm max-w-sm mx-auto mb-6">
+                  No algorithmic challenges match your current search query or active filters.
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilters({ difficulty: 'all', tag: 'all', status: 'all' });
+                  }}
+                  className="px-6 py-2.5 rounded-xl bg-[#ff4500] hover:bg-[#ff5722] text-white text-xs font-bold tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(255,69,0,0.4)] inline-flex items-center gap-2"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#ff4500]/0 via-[#ff4500]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                  
-                  <div className="flex items-center justify-between relative z-10">
-                    <div className="flex items-center gap-6">
-                      <span className="text-lg font-mono text-gray-600 font-black w-6 group-hover:text-[#ff4500]/50 transition-colors">
-                        {(index + 1).toString().padStart(2, '0')}
-                      </span>
-                      <div>
-                        <NavLink
-                          to={`/problem/${problem._id}`}
-                          className="text-lg font-bold text-gray-200 group-hover:text-white transition-colors flex items-center gap-3 tracking-wide"
-                        >
-                          {problem.title}
-                          {isProblemSolved(problem._id) && (
-                            <CheckCircle className="w-4 h-4 text-emerald-500 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
-                          )}
-                        </NavLink>
-                        <div className="flex items-center gap-3 mt-3">
-                          <span className={`px-3 py-1 rounded-md text-xs font-bold tracking-widest uppercase border ${getDifficultyStyle(problem.difficulty)}`}>
+                  <RotateCcw className="w-4 h-4" />
+                  Reset Filters
+                </button>
+              </motion.div>
+            ) : viewMode === 'grid' ? (
+              /* GRID VIEW: Futuristic Cyber Arena Modules */
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredProblems.map((problem, index) => {
+                  const diffTheme = getDifficultyTheme(problem.difficulty);
+                  const TagIcon = getTagIcon(problem.tags);
+                  const solved = isProblemSolved(problem._id);
+
+                  return (
+                    <motion.div
+                      key={problem._id}
+                      variants={itemVariants}
+                      whileHover={{ y: -6, scale: 1.015 }}
+                      transition={{ duration: 0.2 }}
+                      className={`group relative bg-gradient-to-b from-[#0e0e12]/90 to-[#070709]/95 hover:from-[#14141c] hover:to-[#0a0a0f] backdrop-blur-2xl border border-white/10 ${diffTheme.borderHover} rounded-3xl p-6 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_0_35px_rgba(255,69,0,0.22)] cursor-pointer`}
+                      onClick={() => navigate(`/problem/${problem._id}`)}
+                    >
+                      {/* Ambient Glowing Corner */}
+                      <div className={`absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-bl ${diffTheme.glow} to-transparent opacity-20 group-hover:opacity-60 blur-3xl transition-opacity pointer-events-none`} />
+
+                      {/* Tech Corner Accents */}
+                      <div className="absolute top-3 left-3 w-2.5 h-2.5 border-t border-l border-white/20 group-hover:border-[#ff4500] transition-colors pointer-events-none" />
+                      <div className="absolute top-3 right-3 w-2.5 h-2.5 border-t border-r border-white/20 group-hover:border-[#ff4500] transition-colors pointer-events-none" />
+
+                      {/* Top Header: Sequence Index + Difficulty + Solved Status */}
+                      <div className="flex items-center justify-between mb-4 relative z-10">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 rounded-lg bg-black/60 border border-white/10 font-mono text-xs font-bold text-gray-400 group-hover:text-white group-hover:border-[#ff4500]/40 transition-colors shadow-inner flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#ff4500] animate-pulse" />
+                            #{(index + 1).toString().padStart(2, '0')}
+                          </span>
+                          <span className={`px-2.5 py-1 rounded-lg text-xs font-black tracking-widest uppercase border ${diffTheme.badge}`}>
                             {problem.difficulty}
                           </span>
-                          <span className="px-3 py-1 rounded-md text-xs font-bold tracking-widest uppercase bg-[#111] text-gray-400 border border-white/10 shadow-inner">
-                            {problem.tags}
+                        </div>
+
+                        {solved ? (
+                          <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.25)]">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            SOLVED
                           </span>
+                        ) : (
+                          <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/5 text-gray-400 border border-white/10 group-hover:border-[#ff4500]/30 group-hover:text-gray-200 transition-colors">
+                            <Flame className="w-3 h-3 text-[#ff4500]" />
+                            {diffTheme.xp}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Title & Topic Meta */}
+                      <div className="mb-6 relative z-10">
+                        <h3 className="text-lg font-bold text-gray-100 group-hover:text-white transition-colors line-clamp-2 leading-snug tracking-wide mb-3">
+                          {problem.title}
+                        </h3>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Category Tag with Icon */}
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-[#121216] text-gray-300 border border-white/10 group-hover:border-white/20 transition-colors shadow-inner">
+                            <TagIcon className="w-3.5 h-3.5 text-[#ff4500]" />
+                            <span className="capitalize">{problem.tags}</span>
+                          </span>
+
+                          {/* Difficulty Level Visual Gauge */}
+                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#121216] border border-white/5" title={`Level ${diffTheme.level} of 3`}>
+                            {[1, 2, 3].map((lvl) => (
+                              <div
+                                key={lvl}
+                                className={`w-1.5 h-3 rounded-xs transition-all ${
+                                  lvl <= diffTheme.level ? diffTheme.barActive : 'bg-white/10'
+                                }`}
+                              />
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <NavLink
-                      to={`/problem/${problem._id}`}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-4 group-hover:translate-x-0"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-[#ff4500] text-white flex items-center justify-center shadow-[0_0_15px_rgba(255,69,0,0.4)]">
-                        <ChevronRight className="w-6 h-6" />
+                      {/* Bottom Footer Action Bar */}
+                      <div className="pt-4 border-t border-white/5 flex items-center justify-between relative z-10 mt-auto">
+                        <div className="flex items-center gap-1.5">
+                          <Terminal className="w-3 h-3 text-gray-500 group-hover:text-[#ff4500] transition-colors" />
+                          <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider group-hover:text-gray-400 transition-colors">
+                            {solved ? 'MASTERED' : 'ARENA OPEN'}
+                          </span>
+                        </div>
+
+                        <NavLink
+                          to={`/problem/${problem._id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wider transition-all duration-200 ${
+                            solved
+                              ? 'bg-white/5 text-gray-300 hover:bg-white/15 border border-white/10'
+                              : 'bg-[#ff4500]/10 group-hover:bg-[#ff4500] text-[#ff4500] group-hover:text-white border border-[#ff4500]/30 group-hover:border-[#ff4500] shadow-[0_0_15px_rgba(255,69,0,0.15)] group-hover:shadow-[0_0_20px_rgba(255,69,0,0.5)]'
+                          }`}
+                        >
+                          <span>{solved ? 'REVIEW CODE' : 'SOLVE NOW'}</span>
+                          <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                        </NavLink>
                       </div>
-                    </NavLink>
-                  </div>
-                </motion.div>
-              ))
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* LIST VIEW: Streamlined Cyber Command Console */
+              <div className="flex flex-col gap-3.5">
+                {filteredProblems.map((problem, index) => {
+                  const diffTheme = getDifficultyTheme(problem.difficulty);
+                  const TagIcon = getTagIcon(problem.tags);
+                  const solved = isProblemSolved(problem._id);
+
+                  return (
+                    <motion.div
+                      key={problem._id}
+                      variants={itemVariants}
+                      whileHover={{ scale: 1.008, x: 4 }}
+                      transition={{ duration: 0.2 }}
+                      className={`group relative bg-gradient-to-r from-[#0d0d11]/90 to-[#08080a]/95 hover:from-[#14141c] hover:to-[#0d0d12] backdrop-blur-2xl border border-white/10 ${diffTheme.borderHover} rounded-2xl p-4 md:p-5 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_0_25px_rgba(255,69,0,0.18)] cursor-pointer`}
+                      onClick={() => navigate(`/problem/${problem._id}`)}
+                    >
+                      {/* Ambient Cyber Light */}
+                      <div className={`absolute inset-0 bg-gradient-to-r ${diffTheme.glow} via-transparent to-transparent opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none`} />
+
+                      {/* Left: Sequence + Title + Topic Badges */}
+                      <div className="flex items-center gap-4 relative z-10 flex-1 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-black/70 border border-white/10 group-hover:border-[#ff4500]/40 flex items-center justify-center shrink-0 shadow-inner">
+                          <span className="font-mono text-sm font-black text-gray-400 group-hover:text-white transition-colors">
+                            {(index + 1).toString().padStart(2, '0')}
+                          </span>
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-3">
+                            <NavLink
+                              to={`/problem/${problem._id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-base md:text-lg font-bold text-gray-100 group-hover:text-white transition-colors tracking-wide truncate hover:text-[#ff4500]"
+                            >
+                              {problem.title}
+                            </NavLink>
+                            {solved && (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 drop-shadow-[0_0_6px_rgba(16,185,129,0.7)]" />
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2.5 mt-2">
+                            <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-widest uppercase border ${diffTheme.badge}`}>
+                              {problem.difficulty}
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#121216] text-gray-300 border border-white/10 shadow-inner">
+                              <TagIcon className="w-3 h-3 text-[#ff4500]" />
+                              <span className="capitalize">{problem.tags}</span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Difficulty Meter + XP Bounty + Action CTA */}
+                      <div className="flex items-center justify-between md:justify-end gap-4 relative z-10 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-white/5">
+                        {/* Difficulty Gauge (hidden on small mobile) */}
+                        <div className="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#121216] border border-white/5" title={`Level ${diffTheme.level} of 3`}>
+                          <span className="text-[10px] font-mono text-gray-500 mr-1 uppercase">LEVEL</span>
+                          {[1, 2, 3].map((lvl) => (
+                            <div
+                              key={lvl}
+                              className={`w-1.5 h-3 rounded-xs transition-all ${
+                                lvl <= diffTheme.level ? diffTheme.barActive : 'bg-white/10'
+                              }`}
+                            />
+                          ))}
+                        </div>
+
+                        {/* XP Bounty */}
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 text-xs font-bold text-gray-300">
+                          <Flame className="w-3.5 h-3.5 text-[#ff4500]" />
+                          <span>{diffTheme.xp}</span>
+                        </div>
+
+                        {/* CTA Button */}
+                        <NavLink
+                          to={`/problem/${problem._id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all duration-200 ${
+                            solved
+                              ? 'bg-white/5 text-gray-300 hover:bg-white/15 border border-white/10 hover:border-white/20'
+                              : 'bg-[#ff4500] hover:bg-[#ff5722] text-white shadow-[0_0_15px_rgba(255,69,0,0.35)] hover:shadow-[0_0_25px_rgba(255,69,0,0.6)]'
+                          }`}
+                        >
+                          <span>{solved ? 'REVIEW' : 'SOLVE NOW'}</span>
+                          <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                        </NavLink>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
             )}
           </motion.div>
         </div>

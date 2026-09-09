@@ -5,14 +5,29 @@ import 'lenis/dist/lenis.css';
 
 /**
  * SmoothScrollProvider - Global silky smooth momentum scrolling
- * Provides consistent, high-performance scroll physics across all pages
+ * Provides consistent, high-performance scroll physics across landing, dashboard, and public pages.
+ * Automatically deactivates on IDE/code editor pages to allow native panel scrolling.
  */
 export default function SmoothScrollProvider({ children }) {
   const lenisRef = useRef(null);
   const location = useLocation();
 
   useEffect(() => {
-    // Initialize Lenis with refined physics for buttery-smooth scrolling
+    // Problem and Team Coding IDE pages have full-height split layouts with inner scroll containers.
+    // Lenis should not run on these pages to prevent wheel event hijacking.
+    const isIdeRoute = location.pathname.startsWith('/problem') || location.pathname.startsWith('/team-coding/room');
+
+    if (isIdeRoute) {
+      if (lenisRef.current) {
+        lenisRef.current.destroy();
+        lenisRef.current = null;
+        window.lenis = null;
+      }
+      document.documentElement.classList.remove('lenis', 'lenis-smooth');
+      return;
+    }
+
+    // Initialize Lenis for standard scrollable pages
     const lenis = new Lenis({
       duration: 1.1,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -39,8 +54,9 @@ export default function SmoothScrollProvider({ children }) {
       lenis.destroy();
       lenisRef.current = null;
       window.lenis = null;
+      document.documentElement.classList.remove('lenis', 'lenis-smooth');
     };
-  }, []);
+  }, [location.pathname]);
 
   // When switching routes, immediately reset scroll position to top
   useEffect(() => {
@@ -53,3 +69,4 @@ export default function SmoothScrollProvider({ children }) {
 
   return children;
 }
+

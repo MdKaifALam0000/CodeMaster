@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import Editor from '@monaco-editor/react';
 import { useParams } from 'react-router';
-import { Sparkles, Play } from 'lucide-react';
+import { Sparkles, Play, Lock, Unlock, Copy, Check } from 'lucide-react';
+import toast from 'react-hot-toast';
 import axiosClient from "../utils/axiosClient"
 import SubmissionHistory from "../components/SubmissionHistory"
 import ChatAi from '../components/ChatAI';
@@ -28,6 +29,8 @@ const ProblemPage = () => {
     const [activeRightTab, setActiveRightTab] = useState('code');
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [isAnimatorOpen, setIsAnimatorOpen] = useState(false);
+    const [isUnlocking, setIsUnlocking] = useState(false);
+    const [copiedIndex, setCopiedIndex] = useState(null);
     const editorRef = useRef(null);
     let { problemId } = useParams();
 
@@ -246,6 +249,33 @@ const ProblemPage = () => {
     };
 
 
+    const handleUnlockSolution = async () => {
+        setIsUnlocking(true);
+        try {
+            const res = await axiosClient.post(`/problem/unlock/${problemId}`);
+            if (res.data.success) {
+                setProblem(prev => ({
+                    ...prev,
+                    solutionsUnlocked: true,
+                    referenceSolution: res.data.referenceSolution
+                }));
+                toast.success("Solutions unlocked successfully! 🎉");
+            }
+        } catch (err) {
+            console.error("Error unlocking solution:", err);
+            toast.error(err.response?.data?.error || "Failed to unlock solution");
+        } finally {
+            setIsUnlocking(false);
+        }
+    };
+
+    const handleCopySolution = (codeToCopy, index) => {
+        navigator.clipboard.writeText(codeToCopy);
+        setCopiedIndex(index);
+        toast.success("Copied to clipboard!");
+        setTimeout(() => setCopiedIndex(null), 2000);
+    };
+
     const handleSubmitCode = async () => {
         setLoading(true);
         setSubmitResult(null);
@@ -260,11 +290,36 @@ const ProblemPage = () => {
             setLoading(false);
             setActiveRightTab('result');
 
+            if (response.data.accepted) {
+                toast.success("Accepted! Solutions unlocked 🎉");
+                try {
+                    const res = await axiosClient.get(`/problem/problemById/${problemId}`);
+                    if (res.data) {
+                        setProblem(res.data);
+                    }
+                } catch (fetchErr) {
+                    console.error("Error refetching problem after solve:", fetchErr);
+                }
+            } else {
+                setProblem(prev => prev ? {
+                    ...prev,
+                    attemptsCount: (prev.attemptsCount || 0) + 1,
+                    canUnlock: ((prev.attemptsCount || 0) + 1) >= 5
+                } : prev);
+            }
+
         } catch (error) {
             console.error('Error submitting code:', error);
-            setSubmitResult(null);
+            const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Error submitting code';
+            setSubmitResult({
+                accepted: false,
+                error: errorMsg,
+                passedTestCases: 0,
+                totalTestCases: problem?.hiddenTestCases?.length || 0
+            });
             setLoading(false);
             setActiveRightTab('result');
+            toast.error(errorMsg);
         }
     };
 
@@ -295,13 +350,13 @@ const ProblemPage = () => {
     }
 
     return (
-        <div className="h-screen flex flex-col bg-[#000000] text-gray-200 font-sans overflow-hidden">
+        <div data-lenis-prevent className="h-screen flex flex-col bg-[#000000] text-gray-200 font-sans overflow-hidden">
             {/* Panels Container */}
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+            <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
                 {/* Left Panel */}
-                <div className="w-full lg:w-1/2 h-[40vh] lg:h-full flex flex-col border-b lg:border-b-0 lg:border-r border-[#ff4500]/20 bg-[#0a0a0a] shrink-0">
+                <div className="w-full lg:w-1/2 h-[50vh] lg:h-full min-h-0 flex flex-col border-b lg:border-b-0 lg:border-r border-[#ff4500]/20 bg-[#0a0a0a]">
                 {/* Left Tabs */}
-                <div className="flex bg-[#111] px-4 gap-1 border-b border-gray-800 pt-2">
+                <div className="flex bg-[#111] px-4 gap-1 border-b border-gray-800 pt-2 shrink-0">
                     <button
                         className={`px-4 py-2 rounded-t-lg text-sm font-bold tracking-widest uppercase transition-all ${activeLeftTab === 'description' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
                         onClick={() => setActiveLeftTab('description')}
@@ -315,10 +370,13 @@ const ProblemPage = () => {
                         Editorial
                     </button>
                     <button
-                        className={`px-4 py-2 rounded-t-lg text-sm font-bold tracking-widest uppercase transition-all ${activeLeftTab === 'solutions' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
+                        className={`px-4 py-2 rounded-t-lg text-sm font-bold tracking-widest uppercase transition-all flex items-center gap-1.5 ${activeLeftTab === 'solutions' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
                         onClick={() => setActiveLeftTab('solutions')}
                     >
-                        Solutions
+                        <span>Solutions</span>
+                        {!problem?.solutionsUnlocked && (
+                            <Lock className="w-3.5 h-3.5 opacity-70" />
+                        )}
                     </button>
                     <button
                         className={`px-4 py-2 rounded-t-lg text-sm font-bold tracking-widest uppercase transition-all ${activeLeftTab === 'submissions' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
@@ -335,7 +393,7 @@ const ProblemPage = () => {
                 </div>
 
                 {/* Left Content */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div data-lenis-prevent className="flex-1 min-h-0 overflow-y-auto p-6 overscroll-contain">
                     {problem && (
                         <>
                             {activeLeftTab === 'description' && (
@@ -383,21 +441,120 @@ const ProblemPage = () => {
 
                             {activeLeftTab === 'solutions' && (
                                 <div>
-                                    <h2 className="text-xl font-black tracking-widest text-[#ff4500] uppercase mb-4">Solutions</h2>
-                                    <div className="space-y-6">
-                                        {problem.referenceSolution?.map((solution, index) => (
-                                            <div key={index} className="border border-[#ff4500]/20 rounded-lg overflow-hidden shadow-[0_0_15px_rgba(255,69,0,0.05)]">
-                                                <div className="bg-[#111] border-b border-[#ff4500]/20 px-4 py-2">
-                                                    <h3 className="font-bold text-gray-200 tracking-wider">{problem?.title} - {solution?.language}</h3>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h2 className="text-xl font-black tracking-widest text-[#ff4500] uppercase">Official Solutions</h2>
+                                        {problem.solutionsUnlocked && (
+                                            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                                                <Unlock className="w-3.5 h-3.5" /> Unlocked
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {problem.solutionsUnlocked && problem.referenceSolution && problem.referenceSolution.length > 0 ? (
+                                        <div className="space-y-6">
+                                            {problem.referenceSolution.map((solution, index) => (
+                                                <div key={index} className="border border-[#ff4500]/20 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(255,69,0,0.06)] bg-[#0d0d0d]">
+                                                    <div className="bg-[#141414] border-b border-[#ff4500]/20 px-4 py-2.5 flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="w-2 h-2 rounded-full bg-[#ff4500]" />
+                                                            <h3 className="font-bold text-gray-200 tracking-wider text-sm">{solution?.language}</h3>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleCopySolution(solution?.completeCode, index)}
+                                                            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
+                                                        >
+                                                            {copiedIndex === index ? (
+                                                                <>
+                                                                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                                                    <span className="text-emerald-400">Copied</span>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Copy className="w-3.5 h-3.5" />
+                                                                    <span>Copy</span>
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                    <div className="p-4 bg-[#080808]">
+                                                        <pre className="text-gray-300 p-4 rounded-lg text-sm overflow-x-auto bg-[#000] border border-gray-800/80 font-mono leading-relaxed">
+                                                            <code>{solution?.completeCode}</code>
+                                                        </pre>
+                                                    </div>
                                                 </div>
-                                                <div className="p-4 bg-[#0a0a0a]">
-                                                    <pre className="text-gray-300 p-4 rounded-lg text-sm overflow-x-auto bg-[#000] border border-gray-800">
-                                                        <code>{solution?.completeCode}</code>
-                                                    </pre>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="border border-white/10 bg-gradient-to-b from-[#141414] to-[#0a0a0a] rounded-2xl p-6 md:p-8 text-center relative overflow-hidden shadow-2xl">
+                                            <div className="w-16 h-16 rounded-2xl bg-[#ff4500]/10 border border-[#ff4500]/30 flex items-center justify-center mx-auto mb-4 text-[#ff4500] shadow-[0_0_30px_rgba(255,69,0,0.15)]">
+                                                <Lock className="w-8 h-8" />
+                                            </div>
+
+                                            <h3 className="text-xl font-black text-white uppercase tracking-wider mb-2">
+                                                Official Solutions Locked
+                                            </h3>
+                                            <p className="text-sm text-gray-400 max-w-md mx-auto mb-6 leading-relaxed">
+                                                To master algorithmic problem solving, reference solutions remain hidden until you either solve it or make sufficient genuine attempts.
+                                            </p>
+
+                                            {/* Unlock Conditions */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 text-left max-w-lg mx-auto">
+                                                <div className="bg-[#111] border border-gray-800/80 p-4 rounded-xl flex items-start gap-3">
+                                                    <span className="text-lg">🎯</span>
+                                                    <div>
+                                                        <h4 className="text-xs font-bold text-gray-200 uppercase tracking-wider">Method 1</h4>
+                                                        <p className="text-xs text-gray-400 mt-1">Get an <strong className="text-emerald-400">Accepted</strong> submission on your own.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-[#111] border border-gray-800/80 p-4 rounded-xl flex items-start gap-3">
+                                                    <span className="text-lg">⚡</span>
+                                                    <div>
+                                                        <h4 className="text-xs font-bold text-gray-200 uppercase tracking-wider">Method 2</h4>
+                                                        <p className="text-xs text-gray-400 mt-1">Make at least <strong>5 genuine attempts</strong> to unlock.</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        )) || <p className="text-gray-500">Solutions will be available after you solve the problem.</p>}
-                                    </div>
+
+                                            {/* Progress Card */}
+                                            <div className="max-w-md mx-auto bg-[#111] border border-gray-800 rounded-xl p-4 mb-6">
+                                                <div className="flex justify-between items-center text-xs font-semibold mb-2">
+                                                    <span className="text-gray-400 uppercase tracking-wider">Submission Attempts</span>
+                                                    <span className="text-[#ff4500] font-mono font-bold">{problem.attemptsCount || 0} / 5</span>
+                                                </div>
+                                                <div className="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                                                    <div
+                                                        className="bg-gradient-to-r from-[#ff4500] to-[#ff003c] h-2.5 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(255,69,0,0.5)]"
+                                                        style={{ width: `${Math.min(100, (((problem.attemptsCount || 0) / 5) * 100))}%` }}
+                                                    />
+                                                </div>
+                                                <p className="text-[11px] text-gray-400 mt-2.5">
+                                                    {(problem.attemptsCount || 0) >= 5
+                                                        ? "🎉 You have reached 5 attempts! The solutions can now be unlocked."
+                                                        : `Try solving the problem! ${5 - (problem.attemptsCount || 0)} more genuine attempt(s) needed to unlock.`}
+                                                </p>
+                                            </div>
+
+                                            {/* Action Button */}
+                                            {(problem.attemptsCount || 0) >= 5 ? (
+                                                <button
+                                                    onClick={handleUnlockSolution}
+                                                    disabled={isUnlocking}
+                                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4500] to-[#ff003c] text-white font-bold text-sm tracking-wider uppercase shadow-[0_0_20px_rgba(255,69,0,0.4)] hover:shadow-[0_0_30px_rgba(255,69,0,0.6)] transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50 cursor-pointer"
+                                                >
+                                                    <Unlock className="w-4 h-4" />
+                                                    <span>{isUnlocking ? 'Unlocking...' : 'Unlock Solutions'}</span>
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    disabled
+                                                    className="px-6 py-3 rounded-xl bg-gray-800/80 text-gray-500 font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 mx-auto cursor-not-allowed border border-gray-700/50"
+                                                >
+                                                    <Lock className="w-4 h-4" />
+                                                    <span>Locked ({5 - (problem.attemptsCount || 0)} Attempts Left)</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -424,9 +581,9 @@ const ProblemPage = () => {
             </div>
 
             {/* Right Panel */}
-            <div className="w-full lg:w-1/2 h-[60vh] lg:h-full flex flex-col bg-[#000000] shrink-0">
+            <div className="w-full lg:w-1/2 h-[50vh] lg:h-full min-h-0 flex flex-col bg-[#000000]">
                 {/* Right Tabs */}
-                <div className="flex bg-[#111] px-4 gap-1 border-b border-gray-800 pt-2">
+                <div className="flex bg-[#111] px-4 gap-1 border-b border-gray-800 pt-2 shrink-0">
                     <button
                         className={`px-4 py-2 rounded-t-lg text-sm font-bold tracking-widest uppercase transition-all ${activeRightTab === 'code' ? 'bg-[#ff4500] text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]' : 'text-gray-500 hover:text-gray-300 hover:bg-[#222]'}`}
                         onClick={() => setActiveRightTab('code')}
@@ -448,11 +605,11 @@ const ProblemPage = () => {
                 </div>
 
                 {/* Right Content */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 min-h-0 flex flex-col">
                     {activeRightTab === 'code' && (
-                        <div className="flex-1 flex flex-col">
+                        <div className="flex-1 min-h-0 flex flex-col">
                             {/* Language Selector */}
-                            <div className="flex justify-between items-center p-4 border-b border-[#ff4500]/20 bg-[#0a0a0a]">
+                            <div className="flex justify-between items-center p-4 border-b border-[#ff4500]/20 bg-[#0a0a0a] shrink-0">
                                 <div className="flex gap-2">
                                     {['javascript', 'java', 'cpp'].map((lang) => (
                                         <button
@@ -467,7 +624,7 @@ const ProblemPage = () => {
                             </div>
 
                             {/* Monaco Editor */}
-                            <div className="flex-1">
+                            <div data-lenis-prevent className="flex-1 min-h-0 relative">
                                 <Editor
                                     height="100%"
                                     language={getLanguageForMonaco(selectedLanguage)}
@@ -544,7 +701,7 @@ const ProblemPage = () => {
                     )}
 
                     {activeRightTab === 'testcase' && (
-                        <div className="flex-1 p-4 overflow-y-auto">
+                        <div data-lenis-prevent className="flex-1 min-h-0 p-4 overflow-y-auto overscroll-contain">
                             <h3 className="font-semibold mb-4">Test Results</h3>
                             {runResult ? (
                                 <div className={`p-4 rounded-xl border mb-4 shadow-lg ${runResult.success ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]' : 'bg-[#ff003c]/10 border-[#ff003c]/30 text-[#ff003c]'}`}>
@@ -600,7 +757,7 @@ const ProblemPage = () => {
                     )}
 
                     {activeRightTab === 'result' && (
-                        <div className="flex-1 p-4 overflow-y-auto">
+                        <div data-lenis-prevent className="flex-1 min-h-0 p-4 overflow-y-auto overscroll-contain">
                             <h3 className="font-semibold mb-4">Submission Result</h3>
                             {submitResult ? (
                                 <div className={`p-4 rounded-xl border shadow-lg ${submitResult.accepted ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]' : 'bg-[#ff003c]/10 border-[#ff003c]/30 text-[#ff003c]'}`}>
