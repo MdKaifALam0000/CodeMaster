@@ -56,6 +56,11 @@ console.log('Socket.IO initialized with CORS:', corsOptions.origin);
 app.use(express.json());
 app.use(cookieParser());
 
+// Root route to verify server health and status
+app.get('/', (req, res) => {
+    res.status(200).send('Server is up and running');
+});
+
 // Lightweight health-check endpoint to keep backend warm on free tiers
 app.get('/ping', (req, res) => {
     res.status(200).send('pong');
@@ -94,7 +99,7 @@ const initializeConnection = async () => {
         await redisClient.connect();
         console.log("Redis connected successfully!");
     } catch (err) {
-        console.warn('⚠️ Redis connection failed (running without Redis cache):', err.message);
+        console.warn('Redis connection failed (running without Redis cache):', err.message);
     }
 };
 

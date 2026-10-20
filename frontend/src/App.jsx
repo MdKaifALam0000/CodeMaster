@@ -1,38 +1,52 @@
-import { Routes, Route, Navigate } from "react-router";
-import Login from "./pages/Login";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router";
 import { Toaster } from "react-hot-toast";
-import Signup from "./pages/Signup";
-import Homepage from "./pages/Homepage";
-import LandingPage from "./pages/LandingPage";
-import DashboardPage from "./pages/DashboardPage";
 import { useDispatch, useSelector } from 'react-redux';
 import { checkAuth } from "./authSlice";
-import { useEffect, useState } from "react";
-import AdminPanel from "./components/AdminPanel";
-import ProblemPage from "./pages/ProblemPage"
-import Admin from "./pages/Admin";
-import AdminDelete from "./components/AdminDelete"
-import AdminUpdate from "./components/AdminUpdate"
-import AdminVideo from "./components/AdminVideo";
-import AdminUpload from "./components/AdminUpload";
-import TeamCodingLobby from "./pages/TeamCodingLobby";
-import TeamCodingPage from "./pages/TeamCodingPage";
-import Leaderboard from "./pages/Leaderboard";
-import ForgotPassword from "./pages/ForgotPassword";
 import SmoothScrollProvider from "./components/SmoothScrollProvider";
 
-function App() {
+// Code splitting: Lazy load pages to dramatically decrease initial bundle size
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Homepage = lazy(() => import("./pages/Homepage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const ProblemPage = lazy(() => import("./pages/ProblemPage"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const TeamCodingLobby = lazy(() => import("./pages/TeamCodingLobby"));
+const TeamCodingPage = lazy(() => import("./pages/TeamCodingPage"));
+const Admin = lazy(() => import("./pages/Admin"));
+const AdminPanel = lazy(() => import("./components/AdminPanel"));
+const AdminDelete = lazy(() => import("./components/AdminDelete"));
+const AdminUpdate = lazy(() => import("./components/AdminUpdate"));
+const AdminVideo = lazy(() => import("./components/AdminVideo"));
+const AdminUpload = lazy(() => import("./components/AdminUpload"));
 
+// Minimal, fast route transition loader
+const RouteLoader = () => (
+  <div className="min-h-screen bg-black text-gray-400 font-sans flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="relative flex flex-col items-center">
+      <span className="loading loading-spinner loading-lg text-[#ff4500]"></span>
+      <span className="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-4">
+        Loading CodeMaster Module...
+      </span>
+    </div>
+  </div>
+);
+
+function App() {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
   const [showWakingMessage, setShowWakingMessage] = useState(false);
 
-  // check initial authentication
+  // Check initial authentication
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  // Timer to show waking message if server spin-up is slow (Render Free Tier)
+  // Timer to show waking message if server spin-up is slow on protected routes
   useEffect(() => {
     let timer;
     if (loading) {
@@ -45,10 +59,15 @@ function App() {
     return () => clearTimeout(timer);
   }, [loading]);
 
-  if (loading) {
+  // NEVER block public pages (/, /login, /signup, /forgot-password) with a full-screen wakeup loader!
+  const isPublicRoute = ['/', '/login', '/signup', '/forgot-password'].includes(location.pathname);
+  const hasLocalToken = Boolean(localStorage.getItem('token'));
+  const shouldBlockScreen = loading && hasLocalToken && !isPublicRoute;
+
+  if (shouldBlockScreen) {
     return (
       <div className="min-h-screen bg-black text-gray-200 font-sans flex items-center justify-center relative overflow-hidden">
-        {/* Ambient background neon glows matching CodeMaster design */}
+        {/* Ambient background neon glows */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#ff4500]/5 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] h-[180px] bg-[#ff003c]/5 rounded-full blur-[60px] pointer-events-none" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ff450005_1px,transparent_1px),linear-gradient(to_bottom,#ff450005_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
@@ -88,28 +107,29 @@ function App() {
 
   return (
     <SmoothScrollProvider>
-      <Routes>
-
-        <Route path="/" element={isAuthenticated ? <Navigate to="/home" /> : <LandingPage />}></Route>
-        <Route path="/home" element={isAuthenticated ? <Homepage /> : <Navigate to="/" />}></Route>
-        <Route path="/dashboard" element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />}></Route>
-        <Route path="/leaderboard" element={isAuthenticated ? <Leaderboard /> : <Navigate to="/login" />}></Route>
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/home" /> : <Login></Login>}></Route>
-        <Route path="/signup" element={isAuthenticated ? <Navigate to="/home" /> : <Signup></Signup>}></Route>
-        <Route path="/admin" element={isAuthenticated && user?.role === 'admin' ? <Admin /> : <Navigate to="/" />} />
-        <Route path="/admin/create" element={isAuthenticated && user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/" />} />
-        <Route path="/admin/delete" element={isAuthenticated && user?.role === 'admin' ? <AdminDelete /> : <Navigate to="/" />} />
-        <Route path="/admin/video" element={isAuthenticated && user?.role === 'admin' ? <AdminVideo /> : <Navigate to="/" />} />
-        <Route path="/admin/upload/:problemId" element={isAuthenticated && user?.role === 'admin' ? <AdminUpload /> : <Navigate to="/" />} />
-        <Route path="/problem/:problemId" element={<ProblemPage />}></Route>
-        <Route path="/admin/update" element={isAuthenticated && user?.role === 'admin' ? <AdminUpdate /> : <Navigate to="/" />} />
-        <Route path="/team-coding" element={isAuthenticated ? <TeamCodingLobby /> : <Navigate to="/login" />} />
-        <Route path="/team-coding/room/:roomId" element={<TeamCodingPage />} />
-        <Route path="/forgot-password" element={isAuthenticated ? <Navigate to="/home" /> : <ForgotPassword />} />
-      </Routes>
+      <Suspense fallback={<RouteLoader />}>
+        <Routes>
+          <Route path="/" element={isAuthenticated ? <Navigate to="/home" /> : <LandingPage />} />
+          <Route path="/home" element={isAuthenticated ? <Homepage /> : <Navigate to="/" />} />
+          <Route path="/dashboard" element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />} />
+          <Route path="/leaderboard" element={isAuthenticated ? <Leaderboard /> : <Navigate to="/login" />} />
+          <Route path="/login" element={isAuthenticated ? <Navigate to="/home" /> : <Login />} />
+          <Route path="/signup" element={isAuthenticated ? <Navigate to="/home" /> : <Signup />} />
+          <Route path="/admin" element={isAuthenticated && user?.role === 'admin' ? <Admin /> : <Navigate to="/" />} />
+          <Route path="/admin/create" element={isAuthenticated && user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/" />} />
+          <Route path="/admin/delete" element={isAuthenticated && user?.role === 'admin' ? <AdminDelete /> : <Navigate to="/" />} />
+          <Route path="/admin/video" element={isAuthenticated && user?.role === 'admin' ? <AdminVideo /> : <Navigate to="/" />} />
+          <Route path="/admin/upload/:problemId" element={isAuthenticated && user?.role === 'admin' ? <AdminUpload /> : <Navigate to="/" />} />
+          <Route path="/problem/:problemId" element={<ProblemPage />} />
+          <Route path="/admin/update" element={isAuthenticated && user?.role === 'admin' ? <AdminUpdate /> : <Navigate to="/" />} />
+          <Route path="/team-coding" element={isAuthenticated ? <TeamCodingLobby /> : <Navigate to="/login" />} />
+          <Route path="/team-coding/room/:roomId" element={<TeamCodingPage />} />
+          <Route path="/forgot-password" element={isAuthenticated ? <Navigate to="/home" /> : <ForgotPassword />} />
+        </Routes>
+      </Suspense>
       <Toaster position="top-center" reverseOrder={false} />
     </SmoothScrollProvider>
-  )
+  );
 }
 
 export default App;

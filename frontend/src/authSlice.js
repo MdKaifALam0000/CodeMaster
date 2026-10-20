@@ -17,6 +17,22 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const registerAdmin = createAsyncThunk(
+  'auth/registerAdmin',
+  async (adminData, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.post('/user/admin/register', adminData);
+      // Store token in localStorage for Socket.IO
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      return response.data.user;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || error.message || 'Admin registration failed');
+    }
+  }
+);
+
 
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -91,7 +107,24 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Something went wrong';
+        state.error = action.payload?.message || action.payload || 'Something went wrong';
+        state.isAuthenticated = false;
+        state.user = null;
+      })
+
+      // Register Admin Cases
+      .addCase(registerAdmin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerAdmin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = !!action.payload;
+        state.user = action.payload;
+      })
+      .addCase(registerAdmin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || action.payload || 'Admin registration failed';
         state.isAuthenticated = false;
         state.user = null;
       })

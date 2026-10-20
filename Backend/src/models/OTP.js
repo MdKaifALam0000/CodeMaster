@@ -14,7 +14,7 @@ const OTPSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['Registration', 'ResetPassword'],
+        enum: ['Registration', 'ResetPassword', 'AdminRegistration'],
         default: 'Registration'
     },
     createdAt: {
@@ -33,11 +33,14 @@ async function sendVerificationEmail(email, otp, type) {
 
         if (type === 'ResetPassword') {
             const template = resetPasswordTemplate(otp);
-            // resetPasswordTemplate returns a string directly, but sometimes templates return {html, attachments}. 
-            // In our template we return just string.
             html = typeof template === 'string' ? template : template.html;
             attachments = typeof template === 'string' ? [] : template.attachments;
             subject = "Reset Password Verification - CodeMaster";
+        } else if (type === 'AdminRegistration') {
+            const template = emailTemplate(otp);
+            html = typeof template === 'string' ? template : template.html;
+            attachments = typeof template === 'string' ? [] : template.attachments;
+            subject = "Educator / Admin Verification - CodeMaster";
         } else {
             const template = emailTemplate(otp);
             html = typeof template === 'string' ? template : template.html;

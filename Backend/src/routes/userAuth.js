@@ -1,7 +1,7 @@
 const express = require('express');
 
 const authrouter = express.Router();
-const { register, login, logout, adminRegister, deleteProfile, generateOTP, forgotPassword, resetPassword } = require('../controllers/userAuthenticate');
+const { register, login, logout, adminRegister, generateAdminOTP, deleteProfile, generateOTP, forgotPassword, resetPassword } = require('../controllers/userAuthenticate');
 const userMiddleware = require('../middleware/userMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
 
@@ -10,7 +10,11 @@ authrouter.post('/generate-otp', generateOTP);
 authrouter.post('/register', register);
 authrouter.post('/login', login);
 authrouter.post('/logout', userMiddleware, logout);
-authrouter.post('/admin/register', adminMiddleware, adminRegister);
+
+// Admin / Teacher Registration (Public with genuine Gmail & OTP)
+authrouter.post('/admin/generate-otp', generateAdminOTP);
+authrouter.post('/admin/register', adminRegister);
+
 authrouter.delete('/deleteProfile', userMiddleware, deleteProfile);
 
 //Forgot Password routes

@@ -32,7 +32,8 @@ import {
   Play,
   RotateCcw,
   SlidersHorizontal,
-  Layers
+  Layers,
+  Shield
 } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 import { logoutUser } from '../authSlice';
@@ -40,7 +41,7 @@ import Dashboard from '../components/Dashboard/Dashboard';
 
 import ProfilePopup from '../components/Dashboard/ProfilePopup';
 import AIAnalysisModal from '../components/Dashboard/AIAnalysisModal';
-import bgImage from '../assets/Homepageimage/Gemini_Generated_Image_wwax5swwax5swwax.png';
+import bgImage from '../assets/Homepageimage/Gemini_Generated_Image_wwax5swwax5swwax.webp';
 
 // Helper function for formatting dates
 const formatDate = (dateString) => {
@@ -457,6 +458,17 @@ function Homepage() {
               </NavLink>
             )}
 
+            {/* Admin / Teacher Control Center Button */}
+            {user?.role === 'admin' && (
+              <NavLink
+                to="/admin"
+                className="flex items-center gap-1.5 px-3 py-1 bg-red-500/15 hover:bg-red-500/25 rounded-full border border-red-500/30 hover:border-red-500/60 shadow-[0_0_12px_rgba(239,68,68,0.25)] text-red-400 hover:text-white transition-all text-xs font-bold tracking-wide"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>Teacher Hub</span>
+              </NavLink>
+            )}
+
             {/* Profile Dropdown or Login Button */}
             {user ? (
               <motion.button
@@ -529,6 +541,18 @@ function Homepage() {
                 >
                   <Users className="w-4 h-4 text-[#ff4500]" />
                   TEAM CODING
+                </NavLink>
+              )}
+
+              {/* Admin / Teacher Hub Link */}
+              {user?.role === 'admin' && (
+                <NavLink
+                  to="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 text-sm font-bold tracking-wider text-red-400 hover:text-white transition-colors border-b border-white/5"
+                >
+                  <Shield className="w-4 h-4 text-red-500" />
+                  TEACHER / ADMIN HUB
                 </NavLink>
               )}
 

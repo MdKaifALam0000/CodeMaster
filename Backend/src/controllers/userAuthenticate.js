@@ -289,7 +289,7 @@ const logout = async (req, res) => {
                 await redisClient.set(`token:${token}`, 'Blocked');
                 await redisClient.expireAt(`token:${token}`, payload.exp);
             } catch (rErr) {
-                console.warn('⚠️ [Logout] Could not blacklist token in Redis:', rErr.message);
+                console.warn('[Logout] Could not blacklist token in Redis:', rErr.message);
             }
         }
         //clearing the cookie
@@ -308,42 +308,152 @@ const logout = async (req, res) => {
     }
 }
 
-//for admin rgistration
-const adminRegister = async (req, res) => {
+// Generate OTP specifically for Admin/Teacher registration (enforces genuine Gmail)
+const generateAdminOTP = async (req, res) => {
     try {
+        const { emailId } = req.body;
+        if (!emailId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email is required'
+            });
+        }
 
+        const trimmedEmail = emailId.trim().toLowerCase();
 
-        //validate where all the fields are present or not
-        validate(req.body);
+        // Enforce genuine Gmail requirement
+        const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(trimmedEmail);
+        if (!isGmail) {
+            return res.status(400).json({
+                success: false,
+                error: 'Admin / Teacher registration requires a genuine @gmail.com address.'
+            });
+        }
 
-        //all data  will be in the req.body
-        const { firstName, emailId, password } = req.body;
+        // Check if user already exists
+        const existingUser = await User.findOne({ emailId: trimmedEmail });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email is already registered. Please login instead.'
+            });
+        }
 
-        //hashing the password
-        req.body.password = await bcrypt.hash(password, 10);
+        // Generate 6 digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+        await OTP.create({
+            email: trimmedEmail,
+            otp: otp,
+            type: 'AdminRegistration'
+        });
 
-        //if all the fields are present then we will create the user
-        //we will use the User model to create the user
-        const user = await User.create(req.body);
-
-        const token = jwt.sign({ _id: user._id, emailId: emailId, role: user.role }, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
-
-        //setting the token in the cookie
-        res.cookie('token', token, { maxAge: 60 * 60 * 1000 });
-        res.status(201).send({
+        res.status(200).json({
             success: true,
-            message: 'User Registered Successfully',
-        })
+            message: 'Admin verification OTP sent successfully to your Gmail.'
+        });
 
     } catch (err) {
-        console.error(err);
+        console.error('Admin OTP Error:', err);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to send admin verification OTP.',
+            details: err.message
+        });
+    }
+};
+
+// Public Admin / Teacher registration with genuine Gmail and OTP verification
+const adminRegister = async (req, res) => {
+    try {
+        validate(req.body);
+
+        const { firstName, emailId, password, otp } = req.body;
+
+        if (!otp) {
+            return res.status(400).json({
+                success: false,
+                error: 'Verification OTP is required'
+            });
+        }
+
+        const trimmedEmail = emailId.trim().toLowerCase();
+
+        // Enforce genuine Gmail requirement
+        const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(trimmedEmail);
+        if (!isGmail) {
+            return res.status(400).json({
+                success: false,
+                error: 'Admin / Teacher registration requires a genuine @gmail.com address.'
+            });
+        }
+
+        // Verify OTP - Find latest OTP for this email
+        const recentOtp = await OTP.find({
+            email: trimmedEmail,
+            type: { $in: ['AdminRegistration', 'Registration'] }
+        }).sort({ createdAt: -1 }).limit(1);
+
+        if (recentOtp.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'OTP expired or not found'
+            });
+        } else if (otp !== recentOtp[0].otp) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid OTP'
+            });
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create the user with 'admin' role
+        const user = await User.create({
+            ...req.body,
+            emailId: trimmedEmail,
+            password: hashedPassword,
+            role: 'admin'
+        });
+
+        const reply = {
+            firstName: user.firstName,
+            emailId: user.emailId,
+            _id: user._id,
+            role: user.role,
+            profilePicture: user.profilePicture || ''
+        };
+
+        const token = jwt.sign(
+            { _id: user._id, emailId: user.emailId, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: 60 * 60 }
+        );
+
+        // Setting the token in the cookie
+        res.cookie('token', token, {
+            maxAge: 60 * 60 * 1000,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        });
+
+        res.status(201).json({
+            success: true,
+            user: reply,
+            token: token,
+            message: 'Admin / Teacher Account Registered Successfully',
+        });
+
+    } catch (err) {
+        console.error('Admin Register Error:', err);
         return res.status(400).json({
             success: false,
             error: err.message
         });
     }
-}
+};
 
 const deleteProfile = async (req, res) => {
     try {
@@ -367,4 +477,4 @@ const deleteProfile = async (req, res) => {
     }
 }
 
-module.exports = { register, login, logout, adminRegister, deleteProfile, generateOTP, forgotPassword, resetPassword };
+module.exports = { register, login, logout, adminRegister, generateAdminOTP, deleteProfile, generateOTP, forgotPassword, resetPassword };

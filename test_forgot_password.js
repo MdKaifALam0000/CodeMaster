@@ -12,12 +12,12 @@ async function testPasswordReset() {
         console.log('Response:', resetRes.data);
 
         if (resetRes.data.success) {
-            console.log('\n✅ Successfully sent OTP to email. Please check the DB or mailcatcher for the OTP to continue manual testing.');
+            console.log('\nSuccessfully sent OTP to email. Please check the DB or mailcatcher for the OTP to continue manual testing.');
         } else {
-            console.error('❌ Failed to send OTP');
+            console.error('Failed to send OTP');
         }
     } catch (err) {
-        console.error('❌ Error during testing:', err.response ? err.response.data : err.message);
+        console.error('Error during testing:', err.response ? err.response.data : err.message);
     }
 }
 

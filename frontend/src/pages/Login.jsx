@@ -4,10 +4,10 @@ import toast from 'react-hot-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link, useLocation } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { loginUser } from "../authSlice";
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiMail, FiLock, FiArrowRight, FiEye, FiEyeOff, FiCpu, FiHexagon } from 'react-icons/fi';
+import { motion } from 'framer-motion';
+import { FiMail, FiLock, FiArrowRight, FiEye, FiEyeOff, FiCpu, FiHexagon, FiShield } from 'react-icons/fi';
 import ImageSequenceCanvas from '../components/ImageSequenceCanvas';
 
 const loginSchema = z.object({
@@ -29,8 +29,14 @@ export default function Login() {
 
   const onLoginSubmit = async (data) => {
     try {
-      await dispatch(loginUser(data)).unwrap();
-      toast.success("Access Granted! Connection Secure. 🌐");
+      const user = await dispatch(loginUser(data)).unwrap();
+      if (user?.role === 'admin') {
+        toast.success("Welcome, Administrator! Teacher Control Center unlocked. 🎓");
+        navigate('/admin');
+      } else {
+        toast.success("Access Granted! Connection Secure. 🌐");
+        navigate('/home');
+      }
     } catch (err) {
       console.error("Login failed:", err);
       toast.error(err || "Authentication Failed. Please check credentials.");
@@ -59,7 +65,7 @@ export default function Login() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -30, scale: 0.95 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-[480px] bg-[#0a0a0a]/70 backdrop-blur-2xl rounded-3xl shadow-[0_0_50px_rgba(255,69,0,0.1)] border border-white/10 z-10 overflow-hidden"
+        className="relative w-full max-w-[480px] bg-[#0a0a0a]/80 backdrop-blur-2xl rounded-3xl shadow-[0_0_50px_rgba(255,69,0,0.15)] border border-white/10 z-10 overflow-hidden"
       >
         {/* Animated Neon Border Top */}
         <motion.div 
@@ -69,8 +75,8 @@ export default function Login() {
             className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#ff4500] to-transparent opacity-70"
         />
 
-        <div className="p-10 sm:p-12">
-            <div className="flex justify-center mb-8 relative">
+        <div className="p-8 sm:p-10">
+            <div className="flex justify-center mb-6 relative">
                 <div className="absolute inset-0 bg-[#ff4500]/20 blur-2xl rounded-full" />
                 <div className="w-16 h-16 rounded-2xl bg-black border border-[#ff4500]/40 flex items-center justify-center relative z-10 shadow-[0_0_20px_rgba(255,69,0,0.3)]">
                     <FiCpu className="text-[#ff4500] w-8 h-8 animate-pulse" />
@@ -80,11 +86,11 @@ export default function Login() {
             <h1 className="text-3xl font-black text-white mb-2 text-center tracking-tight">
                 ACCESS <span className="text-[#ff4500]">SYSTEM</span>
             </h1>
-            <p className="text-gray-400 text-sm mb-10 text-center font-light tracking-wide">
+            <p className="text-gray-400 text-sm mb-8 text-center font-light tracking-wide">
                 Initialize secure connection to CodeMaster
             </p>
 
-            <form onSubmit={handleSubmit(onLoginSubmit)} className="w-full space-y-6 relative z-10">
+            <form onSubmit={handleSubmit(onLoginSubmit)} className="w-full space-y-5 relative z-10">
                 <div className="relative w-full group">
                     <div className={iconClasses}>
                         <FiMail className="w-5 h-5" />
@@ -118,7 +124,7 @@ export default function Login() {
                     {errors.password && <p className="text-[#ff003c] text-xs mt-2 ml-1">{errors.password.message}</p>}
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between pt-1">
                     <label className="flex items-center cursor-pointer group">
                         <div className="relative flex items-center justify-center w-5 h-5 rounded border border-gray-600 bg-black group-hover:border-[#ff4500] transition-colors">
                             <input type="checkbox" className="opacity-0 absolute w-full h-full cursor-pointer peer" />
@@ -143,7 +149,26 @@ export default function Login() {
                     )}
                 </motion.button>
 
-                <div className="mt-8 text-center border-t border-white/10 pt-6">
+                {/* Teacher / Admin Access Card */}
+                <div className="p-3.5 bg-gradient-to-r from-red-500/10 via-[#ff4500]/10 to-transparent border border-red-500/20 hover:border-red-500/40 rounded-2xl flex items-center justify-between transition-all mt-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
+                            <FiShield className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                            <p className="text-xs font-bold text-white tracking-wide">Educator / Teacher?</p>
+                            <p className="text-[11px] text-gray-400">Manage problems with full CRUD</p>
+                        </div>
+                    </div>
+                    <Link 
+                        to="/signup?role=admin"
+                        className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/60 rounded-xl text-xs font-bold text-red-300 hover:text-white transition-all whitespace-nowrap shadow-[0_0_10px_rgba(239,68,68,0.2)]"
+                    >
+                        Register Admin →
+                    </Link>
+                </div>
+
+                <div className="mt-6 text-center border-t border-white/10 pt-5">
                     <p className="text-gray-400 text-sm">
                         Unregistered entity? 
                         <Link to="/signup" className="text-[#ff4500] font-bold ml-2 hover:text-white transition-colors tracking-wide">
