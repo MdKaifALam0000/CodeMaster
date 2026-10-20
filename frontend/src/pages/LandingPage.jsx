@@ -50,7 +50,7 @@ const LandingPage = () => {
         }
     };
 
-    const glassPanelClass = "bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 shadow-[0_0_25px_rgba(255,69,0,0.05)] hover:shadow-[0_0_35px_rgba(255,69,0,0.15)] hover:border-[#ff4500]/40 transition-all duration-500 rounded-2xl";
+    const glassPanelClass = "bg-[#0a0a0a]/60 backdrop-blur-md border border-white/10 shadow-[0_0_25px_rgba(255,69,0,0.05)] hover:shadow-[0_0_35px_rgba(255,69,0,0.15)] hover:border-[#ff4500]/40 transition-all duration-500 rounded-2xl";
 
     return (
         <div className="min-h-screen bg-black text-gray-200 font-sans selection:bg-[#ff4500] selection:text-black overflow-x-hidden">
@@ -58,15 +58,21 @@ const LandingPage = () => {
             {/* 3D Image Sequence Canvas Background */}
             <ImageSequenceCanvas />
 
-            {/* Ambient Neon Glows */}
+            {/* Ambient Neon Glows - Using hardware-accelerated radial gradients to eliminate expensive 150px blur passes */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
                 <motion.div 
-                    style={{ y: yBackground }}
-                    className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#ff4500]/10 blur-[120px] will-change-transform transform-gpu pointer-events-none"
+                    style={{ 
+                        y: yBackground,
+                        background: 'radial-gradient(circle, rgba(255, 69, 0, 0.12) 0%, rgba(255, 69, 0, 0) 70%)' 
+                    }}
+                    className="absolute -top-[20%] -left-[10%] w-[55%] h-[55%] rounded-full will-change-transform transform-gpu pointer-events-none"
                 />
                 <motion.div 
-                    style={{ y: useTransform(smoothProgress, [0, 1], ['0%', '-35%']) }}
-                    className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#ff003c]/10 blur-[150px] will-change-transform transform-gpu pointer-events-none"
+                    style={{ 
+                        y: useTransform(smoothProgress, [0, 1], ['0%', '-35%']),
+                        background: 'radial-gradient(circle, rgba(255, 0, 60, 0.10) 0%, rgba(255, 0, 60, 0) 70%)'
+                    }}
+                    className="absolute top-[35%] -right-[10%] w-[45%] h-[45%] rounded-full will-change-transform transform-gpu pointer-events-none"
                 />
             </div>
 
